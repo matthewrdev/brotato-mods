@@ -4,7 +4,7 @@
 
 - Wish is an external shop action; all four shop cards remain native.
 - A Wish costs 1 Wish resource plus
-  `30 + 4 × (wave - 1) + 3 × wishes used` materials.
+  `25 + 4 × (wave - 1) + 3 × wishes used` materials.
 - Multiple items may be queued for the next successful reroll, limited by
   unlocked shop slots.
 - Queued items become ordinary cards with native prices and behaviour.

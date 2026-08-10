@@ -228,7 +228,7 @@ func _wish_install_content() -> void:
 	wish_djinn_data.effects = [
 		_wish_stat_effect("stat_harvesting", 5),
 		_wish_stat_gain_effect("stat_harvesting", 15),
-		_wish_stat_effect("xp_gain", 20),
+		_wish_stat_effect("xp_gain", 15),
 		_wish_starting_item_effect(WISH_RESOURCE_ID, 3),
 		_wish_text_effect("WISH_CHARACTER_EFFECT", 0)
 	]

@@ -16,13 +16,13 @@ folder. Pass another folder as the first argument when needed.
 ### Djinn and Wish
 
 - Djinn is unlocked and inherits the profile's available Danger modes.
-- Djinn starts with +5 Harvesting, +15% Harvesting modifications, +20% XP gain,
+- Djinn starts with +5 Harvesting, +15% Harvesting modifications, +15% XP gain,
   the selected weapon, and 3 Wishes.
-- Wave 1 shows four normal shop slots plus an external **Wish — 30** action.
+- Wave 1 shows four normal shop slots plus an external **Wish — 25** action.
 - The picker uses tier-coloured cards, respects bans, excludes Magic Lamp, and
   shows locked-tier countdowns.
-- Wish costs `30 + 4 × (wave - 1) + 3 × wishes used` materials plus 1 Wish resource. Queuing more
-  than one Wish in a shop does not occupy locked slots.
+- Wish costs `25 + 4 × (wave - 1) + 3 × wishes used` materials plus 1 Wish
+  resource. Queuing more than one Wish in a shop does not occupy locked slots.
 - Queued items appear in normal slots on the next reroll and retain native
   purchase, lock, ban, steal, and reroll behaviour.
 - Uncommon, Rare, and Legendary items unlock for Djinn on waves 1, 3, and 6.
