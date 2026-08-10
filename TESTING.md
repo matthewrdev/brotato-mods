@@ -9,14 +9,15 @@
 
 The script builds `dist/Wish-<version>.zip`, taking the version from the
 manifest, and installs it as `Wish-local.zip` in a dedicated local Workshop
-folder. Pass another folder as the first argument when needed.
+item folder that ModLoader scans. It also activates that archive in the current
+mod profile. Pass another folder as the first argument when needed.
 
 ## Smoke test
 
 ### Djinn and Wish
 
 - Djinn is unlocked and inherits the profile's available Danger modes.
-- Djinn starts with +5 Harvesting, +15% Harvesting modifications, +15% XP gain,
+- Djinn starts with +7 Harvesting, +15% Harvesting modifications, +15% XP gain,
   the selected weapon, and 3 Wishes.
 - Wave 1 shows four normal shop slots plus an external **Wish — 25** action.
 - The picker uses tier-coloured cards, respects bans, excludes Magic Lamp, and

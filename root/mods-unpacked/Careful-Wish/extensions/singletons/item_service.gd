@@ -226,7 +226,7 @@ func _wish_install_content() -> void:
 	wish_djinn_data.tier = ItemParentData.Tier.COMMON
 	wish_djinn_data.value = 1
 	wish_djinn_data.effects = [
-		_wish_stat_effect("stat_harvesting", 5),
+		_wish_stat_effect("stat_harvesting", 7),
 		_wish_stat_gain_effect("stat_harvesting", 15),
 		_wish_stat_effect("xp_gain", 15),
 		_wish_starting_item_effect(WISH_RESOURCE_ID, 3),
