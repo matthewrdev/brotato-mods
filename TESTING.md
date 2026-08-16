@@ -32,20 +32,25 @@ mod profile. Pass another folder as the first argument when needed.
 
 ### Shaman and Crooked Wish
 
-- Shaman starts with +5 Curse, gains +1 Curse per level, has +15% Elemental and
-  Life Steal modifications, and -50% Melee and Ranged modifications.
-- Snake and Monkey's Paw are both in the starting inventory.
+- Shaman starts with +5 Curse and +5 Harvesting, gains +1 Curse per level, has
+  +15% Elemental and Life Steal modifications, and -50% Melee and Ranged
+  modifications.
+- The selected weapon, an additional Wand, and Monkey's Paw are all in the
+  starting inventory. Shaman does not start with Snake.
 - The Paw begins with 3 charges and changes through its 3/2/1/0-finger icons.
 - Each Crooked Wish delivers its item on the next reroll and reveals one
   Calamity for the next wave.
 - Calamities last one wave: Hunter, Horde, Night, Frenzy, or Famine. Night adds
-  +10% enemy speed.
+  +10% enemy speed, and Famine turns 50% of fruit drops into poisoned fruit
+  without reducing enemy materials or the number of consumable drops.
 - Crooked Wish tiers unlock on waves 1, 3, and 6.
 
 ### Persistence
 
 - Save/resume preserves Wish resources, queued items, Paw charges, Calamities,
   locks, and cursed-Lamp discounts.
+- Losing or restarting a Shaman run preserves the correct unused Paw fingers;
+  a zero-use Paw restores all 3 charges.
 - Rerolling or buying one card does not corrupt the remaining shop slots.
 
 ## Logs

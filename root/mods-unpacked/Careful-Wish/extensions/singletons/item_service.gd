@@ -7,6 +7,8 @@ const LAMP_ID = "item_magic_lamp"
 const PAW_ID = "item_monkeys_paw"
 const WISH_RESOURCE_ID = "item_wish_resource"
 const PLACEHOLDER_ID = "item_wish_empty_slot"
+const FRUIT_ID = "consumable_fruit"
+const POISONED_FRUIT_PATH = "res://dlcs/dlc_1/consumables/poisoned_fruit_data.tres"
 const CHALLENGE_ID = "chal_djinn"
 const SHAMAN_CHALLENGE_ID = "chal_shaman"
 const BASE_CURSED_DISCOUNT = 20
@@ -42,6 +44,7 @@ var wish_challenge_data = null
 var wish_shaman_challenge_data = null
 var wish_lamp_active_icon = null
 var wish_lamp_used_icon = null
+var wish_poisoned_fruit_data = null
 var wish_paw_icons = []
 
 
@@ -267,13 +270,14 @@ func _wish_install_content() -> void:
 	wish_shaman_data.value = 1
 	wish_shaman_data.effects = [
 		_wish_stat_effect("stat_curse", 5),
+		_wish_stat_effect("stat_harvesting", 5),
 		_wish_stat_on_level_up_effect("stat_curse", 1),
 		_wish_stat_gain_effect("stat_elemental_damage", 15),
 		_wish_stat_gain_effect("stat_lifesteal", 15),
 		_wish_stat_gain_effect("stat_melee_damage", -50),
 		_wish_stat_gain_effect("stat_ranged_damage", -50),
+		_wish_starting_weapon_effect("weapon_wand_1"),
 		_wish_starting_item_effect(PAW_ID, 1),
-		_wish_starting_item_effect("item_snake", 1),
 		_wish_text_effect("CROOKED_CHARACTER_EFFECT", 0)
 	]
 	wish_shaman_data.max_nb = -1
@@ -376,11 +380,21 @@ func get_consumable_to_drop(unit: Unit, item_chance: float) -> ConsumableData:
 	if RunData.crooked_consume_hunter_crate_if_needed(unit):
 		return get_consumable_for_tier(Tier.UNCOMMON)
 
-	if RunData.crooked_has_active_calamity(RunData.CALAMITY_FAMINE):
-		var guaranteed_drop = unit != null and unit.stats.always_drop_consumables
-		if not guaranteed_drop and not Utils.get_chance_success(0.25):
-			return null
+	if (
+		RunData.crooked_has_active_calamity(RunData.CALAMITY_FAMINE)
+		and result.my_id == FRUIT_ID
+		and Utils.get_chance_success(0.5)
+	):
+		var poisoned_fruit = _wish_get_poisoned_fruit_data()
+		if poisoned_fruit != null:
+			return poisoned_fruit
 	return result
+
+
+func _wish_get_poisoned_fruit_data():
+	if wish_poisoned_fruit_data == null:
+		wish_poisoned_fruit_data = load(POISONED_FRUIT_PATH)
+	return wish_poisoned_fruit_data
 
 
 func _wish_remove_stale_lamp_ban(player_index: int, lamp: ItemData) -> void:

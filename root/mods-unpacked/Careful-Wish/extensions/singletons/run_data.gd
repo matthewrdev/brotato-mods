@@ -47,7 +47,8 @@ func reset(restart: bool = false) -> void:
 	wish_players.clear()
 	crooked_state = _crooked_new_state()
 	_wish_ensure_players()
-	ItemService.wish_update_paw_icon(PAW_MAX_CHARGES)
+	_crooked_reconcile_paw_charges()
+	_crooked_refresh_paw_icon()
 
 
 func get_state() -> Dictionary:
@@ -67,6 +68,7 @@ func resume_from_state(state: Dictionary) -> void:
 	_wish_ensure_players()
 	crooked_state = _crooked_sanitize_state(state.get(CROOKED_STATE_KEY, {}))
 	_wish_migrate_resources()
+	_crooked_reconcile_paw_charges()
 	_crooked_refresh_paw_icon()
 
 
@@ -201,6 +203,7 @@ func crooked_has_access(player_index: int) -> bool:
 
 
 func crooked_get_charges(player_index: int) -> int:
+	_crooked_reconcile_player_paw_charges(player_index)
 	return int(wish_get_player_state(player_index).paw_charges)
 
 
@@ -218,6 +221,24 @@ func crooked_consume_charge(player_index: int) -> bool:
 	state.paw_uses = int(state.paw_uses) + 1
 	_crooked_update_player_paw_icon(player_index)
 	return true
+
+
+func _crooked_reconcile_paw_charges() -> void:
+	for player_index in get_player_count():
+		_crooked_reconcile_player_paw_charges(player_index)
+
+
+func _crooked_reconcile_player_paw_charges(player_index: int) -> void:
+	if player_index < 0 or player_index >= get_player_count():
+		return
+	if get_nb_item(Keys.generate_hash(PAW_ID), player_index) <= 0:
+		return
+	var state = wish_get_player_state(player_index)
+	var expected_remaining = max(0, PAW_MAX_CHARGES - int(state.paw_uses)) as int
+	if int(state.paw_charges) >= expected_remaining:
+		return
+	state.paw_charges = expected_remaining
+	ModLoaderLog.info("Restored Monkey's Paw charges after run reset for player " + str(player_index + 1), "Careful-Wish")
 
 
 func crooked_queue_random_calamity() -> String:
@@ -486,6 +507,8 @@ func _crooked_apply_runtime_effects() -> void:
 			}
 			if needs_night:
 				effects[Keys.fog_of_war_event_hash] = max(1, int(effects[Keys.fog_of_war_event_hash]))
+				# Enemy speed is global, so apply the +10% calamity bonus once
+				# rather than once per co-op player.
 				if player_index == 0:
 					effects[Keys.enemy_speed_hash] = int(effects[Keys.enemy_speed_hash]) + NIGHT_ENEMY_SPEED_BONUS
 			if needs_frenzy:

@@ -91,7 +91,7 @@ func _install_translations() -> void:
 		"CALAMITY_FRENZY_NAME": "The Frenzy",
 		"CALAMITY_FRENZY_DESC": "Environmental projectiles persist throughout the wave.",
 		"CALAMITY_FAMINE_NAME": "The Famine",
-		"CALAMITY_FAMINE_DESC": "Enemies yield 50% fewer materials and random consumable drops are reduced by 75%."
+		"CALAMITY_FAMINE_DESC": "Half of all fruit drops become poisoned fruit."
 	}
 
 	for key in messages:
