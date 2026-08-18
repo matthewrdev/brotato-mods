@@ -19,7 +19,8 @@ mod profile. Pass another folder as the first argument when needed.
 - Djinn is unlocked and inherits the profile's available Danger modes.
 - Djinn starts with +7 Harvesting, +15% Harvesting modifications, +15% XP gain,
   the selected weapon, and 3 Wishes.
-- Wave 1 shows four normal shop slots plus an external **Wish — 25** action.
+- Wave 1 shows four normal shop slots plus a compact Magic Lamp action showing
+  the 3 remaining Wishes. Its tooltip shows the Wish cost and queued items.
 - The picker uses tier-coloured cards, respects bans, excludes Magic Lamp, and
   shows locked-tier countdowns.
 - Wish costs `25 + 4 × (wave - 1) + 3 × wishes used` materials plus 1 Wish
@@ -38,6 +39,10 @@ mod profile. Pass another folder as the first argument when needed.
 - The selected weapon, an additional Wand, and Monkey's Paw are all in the
   starting inventory. Shaman does not start with Snake.
 - The Paw begins with 3 charges and changes through its 3/2/1/0-finger icons.
+- When a character has both the Lamp and the Paw, the shop header shows two
+  compact icon actions and remains within the screen at the minimum supported
+  resolution. Pending Calamities appear in the Paw tooltip rather than a third
+  header control.
 - Each Crooked Wish delivers its item on the next reroll and reveals one
   Calamity for the next wave.
 - Calamities last one wave: Hunter, Horde, Night, Frenzy, or Famine. Night adds

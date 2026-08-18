@@ -4,15 +4,9 @@ const LAMP_ID = "item_magic_lamp"
 const DJINN_ID = "character_djinn"
 const PLACEHOLDER_ID = "item_wish_empty_slot"
 const WISH_CARD_FONT = preload("res://resources/fonts/actual/base/font_very_smallest_text.tres")
-const WISH_RESOURCE_FONT = preload("res://resources/fonts/actual/base/font_60_outline.tres")
-const WISH_RESOURCE_FONT_COOP = preload("res://resources/fonts/actual/base/font_35_outline.tres")
 
 var _wish_action_buttons = [null, null, null, null]
 var _crooked_action_buttons = [null, null, null, null]
-var _crooked_calamity_badges = [null, null, null, null]
-var _wish_resource_counters = [null, null, null, null]
-var _wish_resource_icons = [null, null, null, null]
-var _wish_resource_labels = [null, null, null, null]
 var _wish_picker_popups = [null, null, null, null]
 var _wish_picker_titles = [null, null, null, null]
 var _wish_picker_lists = [null, null, null, null]
@@ -217,13 +211,14 @@ func _wish_migrate_legacy_shop(player_index: int) -> bool:
 func _wish_create_action_button(player_index: int) -> void:
 	var reroll_button = _get_reroll_button(player_index)
 	var header = reroll_button.get_parent()
-	_wish_create_resource_counter(player_index, header, reroll_button)
+	# Wish and Crooked Wish can coexist. Keep each action to one icon-sized
+	# control so the native shop header still fits at narrow resolutions.
 	var button = Button.new()
 	button.name = "WishActionP" + str(player_index + 1)
-	button.text = tr("WISH_ACTION")
-	button.rect_min_size = Vector2(140, 65) if RunData.is_coop_run else Vector2(320, 82)
+	button.rect_min_size = Vector2(88, 65) if RunData.is_coop_run else Vector2(128, 82)
 	button.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	button.clip_text = true
+	button.expand_icon = true
 	button.connect("pressed", self, "_on_wish_action_pressed", [player_index])
 	header.add_child(button)
 	header.move_child(button, reroll_button.get_index())
@@ -236,75 +231,17 @@ func _crooked_create_action_button(player_index: int) -> void:
 
 	var button = Button.new()
 	button.name = "CrookedWishActionP" + str(player_index + 1)
-	button.rect_min_size = Vector2(150, 65) if RunData.is_coop_run else Vector2(310, 82)
+	button.rect_min_size = Vector2(88, 65) if RunData.is_coop_run else Vector2(128, 82)
 	button.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	button.clip_text = true
+	button.expand_icon = true
 	button.connect("pressed", self, "_on_crooked_action_pressed", [player_index])
 	header.add_child(button)
 	header.move_child(button, reroll_button.get_index())
 	_crooked_action_buttons[player_index] = button
 
-	var badge = Label.new()
-	badge.name = "CrookedCalamitiesP" + str(player_index + 1)
-	badge.rect_min_size = Vector2(150, 65) if RunData.is_coop_run else Vector2(300, 82)
-	badge.align = Label.ALIGN_CENTER
-	badge.valign = Label.VALIGN_CENTER
-	badge.autowrap = true
-	badge.clip_text = true
-	badge.mouse_filter = Control.MOUSE_FILTER_STOP
-	header.add_child(badge)
-	header.move_child(badge, reroll_button.get_index())
-	_crooked_calamity_badges[player_index] = badge
-
-
-func _wish_create_resource_counter(player_index: int, header: Control, reroll_button: Control) -> void:
-	var counter = HBoxContainer.new()
-	counter.name = "WishResourceP" + str(player_index + 1)
-	counter.rect_min_size = Vector2(74, 65) if RunData.is_coop_run else Vector2(112, 82)
-	counter.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	counter.add_constant_override("separation", 4)
-
-	var icon = TextureRect.new()
-	var icon_size = 34 if RunData.is_coop_run else 54
-	icon.rect_min_size = Vector2(icon_size, icon_size)
-	var resource = ItemService.wish_get_resource_data()
-	if resource != null:
-		icon.texture = resource.get_icon()
-	icon.expand = true
-	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	counter.add_child(icon)
-
-	var label = Label.new()
-	label.text = "0"
-	label.valign = Label.VALIGN_CENTER
-	label.add_font_override("font", WISH_RESOURCE_FONT_COOP if RunData.is_coop_run else WISH_RESOURCE_FONT)
-	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	counter.add_child(label)
-
-	header.add_child(counter)
-	header.move_child(counter, reroll_button.get_index())
-	_wish_resource_counters[player_index] = counter
-	_wish_resource_icons[player_index] = icon
-	_wish_resource_labels[player_index] = label
-
-
-func _wish_refresh_resource_counter(player_index: int) -> void:
-	var counter = _wish_resource_counters[player_index]
-	var icon = _wish_resource_icons[player_index]
-	var label = _wish_resource_labels[player_index]
-	if counter == null or label == null:
-		return
-	var count = RunData.wish_get_resource_count(player_index)
-	if icon != null:
-		icon.texture = ItemService.wish_get_active_lamp_icon() if count > 0 else ItemService.wish_get_used_lamp_icon()
-	counter.visible = RunData.wish_has_access(player_index) or count > 0
-	label.text = str(count)
-	counter.hint_tooltip = Text.text("WISH_RESOURCE_COUNT", [str(count)])
-
 
 func _wish_refresh_action(player_index: int) -> void:
-	_wish_refresh_resource_counter(player_index)
 	_crooked_refresh_action(player_index)
 	var button = _wish_action_buttons[player_index]
 	if button == null:
@@ -312,23 +249,20 @@ func _wish_refresh_action(player_index: int) -> void:
 	button.visible = RunData.wish_has_access(player_index)
 	if not button.visible:
 		return
+	var resource_count = RunData.wish_get_resource_count(player_index)
+	button.text = str(resource_count)
+	button.icon = ItemService.wish_get_active_lamp_icon() if resource_count > 0 else ItemService.wish_get_used_lamp_icon()
 	var phase = RunData.wish_get_phase(player_index)
 	button.disabled = true
-	button.hint_tooltip = ""
+	button.hint_tooltip = tr("WISH_ACTION")
 
 	match phase:
 		RunData.WISH_AVAILABLE, RunData.WISH_QUEUED_CURRENT_SHOP:
 			var cost = RunData.wish_get_cost(player_index)
-			var queued_count = RunData.wish_get_pending_count(player_index)
-			if queued_count == 1:
-				button.text = Text.text("WISH_AGAIN_ONE_COMPACT", [str(cost), _wish_get_first_queued_item_name(player_index), str(_wish_get_first_queued_item_estimate(player_index))])
-			elif queued_count > 1:
-				button.text = Text.text("WISH_AGAIN_MANY_COMPACT", [str(cost), _wish_get_first_queued_item_name(player_index), str(_wish_get_first_queued_item_estimate(player_index)), str(queued_count - 1)])
-			else:
-				button.text = Text.text("WISH_ACTION_COMPACT", [str(cost)])
-			button.hint_tooltip = _wish_get_queue_preview(player_index)
-			if not button.hint_tooltip.empty():
-				button.hint_tooltip += "\n"
+			var queue_preview = _wish_get_queue_preview(player_index)
+			if not queue_preview.empty():
+				button.hint_tooltip += "\n" + queue_preview
+			button.hint_tooltip += "\n"
 			button.hint_tooltip += Text.text("WISH_COST", [str(cost)]) + "\n" + Text.text("WISH_RESOURCE_COUNT", [str(RunData.wish_get_resource_count(player_index))])
 			if RunData.wish_get_available_delivery_slots(player_index) <= 0:
 				button.hint_tooltip += "\n" + tr("WISH_NO_REROLL_SLOTS")
@@ -339,20 +273,21 @@ func _wish_refresh_action(player_index: int) -> void:
 			else:
 				button.disabled = false
 		_:
-			button.text = tr("WISH_ACTION")
-			button.hint_tooltip = tr("WISH_QUEUE_MIGRATING")
+			button.hint_tooltip += "\n" + tr("WISH_QUEUE_MIGRATING")
 
 
 func _crooked_refresh_action(player_index: int) -> void:
 	var button = _crooked_action_buttons[player_index]
-	var badge = _crooked_calamity_badges[player_index]
-	if button == null or badge == null:
+	if button == null:
 		return
 	button.visible = RunData.crooked_has_access(player_index)
+	if not button.visible:
+		return
 	button.disabled = true
 	var charges = RunData.crooked_get_charges(player_index)
-	button.text = Text.text("CROOKED_ACTION_COMPACT", [str(charges)])
-	button.hint_tooltip = Text.text("CROOKED_CHARGES", [str(charges)]) + "\n" + tr("CROOKED_CONSEQUENCE")
+	button.text = str(charges)
+	button.icon = ItemService.wish_get_paw_icon(charges)
+	button.hint_tooltip = tr("CROOKED_ACTION") + "\n" + Text.text("CROOKED_CHARGES", [str(charges)]) + "\n" + tr("CROOKED_CONSEQUENCE")
 	if charges <= 0:
 		button.hint_tooltip += "\n" + tr("CROOKED_NO_CHARGES")
 	elif not RunData.wish_can_queue_item(player_index):
@@ -361,15 +296,14 @@ func _crooked_refresh_action(player_index: int) -> void:
 		button.disabled = false
 
 	var queued = RunData.crooked_get_queued_calamities()
-	badge.visible = button.visible and not queued.empty()
-	if badge.visible:
+	if not queued.empty():
 		var names = []
 		var details = []
 		for calamity_id in queued:
 			names.push_back(_crooked_get_calamity_name(str(calamity_id)))
 			details.push_back(_crooked_get_calamity_name(str(calamity_id)) + ": " + _crooked_get_calamity_description(str(calamity_id)))
-		badge.text = Text.text("CROOKED_BADGE", [PoolStringArray(names).join(" + ")])
-		badge.hint_tooltip = PoolStringArray(details).join("\n")
+		button.hint_tooltip += "\n" + Text.text("CROOKED_BADGE", [PoolStringArray(names).join(" + ")])
+		button.hint_tooltip += "\n" + PoolStringArray(details).join("\n")
 
 
 func _wish_get_queue_preview(player_index: int) -> String:
@@ -379,22 +313,6 @@ func _wish_get_queue_preview(player_index: int) -> String:
 		if item != null:
 			lines.push_back(Text.text("WISH_QUEUE_ITEM", [item.get_name_text(), str(_wish_get_estimated_delivery_price(item, player_index))]))
 	return PoolStringArray(lines).join("\n")
-
-
-func _wish_get_first_queued_item_name(player_index: int) -> String:
-	var queued_ids = RunData.wish_get_pending_item_ids(player_index)
-	if queued_ids.empty():
-		return ""
-	var item = _wish_find_item(str(queued_ids[0]))
-	return item.get_name_text() if item != null else tr("WISH_UNAVAILABLE_COMPACT")
-
-
-func _wish_get_first_queued_item_estimate(player_index: int) -> int:
-	var queued_ids = RunData.wish_get_pending_item_ids(player_index)
-	if queued_ids.empty():
-		return 0
-	var item = _wish_find_item(str(queued_ids[0]))
-	return _wish_get_estimated_delivery_price(item, player_index) if item != null else 0
 
 
 func _wish_create_picker(player_index: int) -> void:
