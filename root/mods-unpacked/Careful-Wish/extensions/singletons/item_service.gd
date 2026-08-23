@@ -5,6 +5,13 @@ const DJINN_ID = "character_djinn"
 const SHAMAN_ID = "character_shaman"
 const LAMP_ID = "item_magic_lamp"
 const PAW_ID = "item_monkeys_paw"
+const COMPANY_WISH_ID = "item_wish_for_company"
+const WISH_IT_AWAY_ID = "item_wish_it_away"
+const WISH_YOU_WERE_HERE_ID = "item_wish_you_were_here"
+const WISH_FOR_TREASURE_ID = "item_wish_for_treasure"
+const WISH_FOR_QUALITY_ID = "item_wish_for_quality"
+const WISH_FOR_FORTUNE_ID = "item_wish_for_fortune"
+const WISH_FOR_KNOWLEDGE_ID = "item_wish_for_knowledge"
 const WISH_RESOURCE_ID = "item_wish_resource"
 const PLACEHOLDER_ID = "item_wish_empty_slot"
 const FRUIT_ID = "consumable_fruit"
@@ -38,6 +45,13 @@ var wish_djinn_data = null
 var wish_shaman_data = null
 var wish_lamp_data = null
 var wish_paw_data = null
+var wish_for_company_data = null
+var wish_it_away_data = null
+var wish_you_were_here_data = null
+var wish_for_treasure_data = null
+var wish_for_quality_data = null
+var wish_for_fortune_data = null
+var wish_for_knowledge_data = null
 var wish_resource_data = null
 var wish_placeholder_data = null
 var wish_challenge_data = null
@@ -51,23 +65,45 @@ var wish_paw_icons = []
 func _ready() -> void:
 	_wish_install_content()
 	# ContentLoader reloads ProgressData later in the same ready pass. Defer the
-	# default unlock so the saved profile cannot turn Djinn back into a padlock.
-	call_deferred("_wish_unlock_characters_after_profile_load")
+	# default unlocks so the saved profile cannot turn new content back into a
+	# padlock.
+	call_deferred("_wish_unlock_content_after_profile_load")
 
 
-func _wish_unlock_characters_after_profile_load() -> void:
+func _wish_unlock_content_after_profile_load() -> void:
 	if wish_djinn_data == null:
 		wish_djinn_data = _wish_find_by_id(characters, DJINN_ID)
 	if wish_shaman_data == null:
 		wish_shaman_data = _wish_find_by_id(characters, SHAMAN_ID)
-	if wish_djinn_data == null or wish_shaman_data == null:
-		push_error("Wish could not find its characters after content registration")
+	if wish_for_company_data == null:
+		wish_for_company_data = _wish_find_by_id(items, COMPANY_WISH_ID)
+	wish_it_away_data = _wish_find_by_id(items, WISH_IT_AWAY_ID)
+	wish_you_were_here_data = _wish_find_by_id(items, WISH_YOU_WERE_HERE_ID)
+	wish_for_treasure_data = _wish_find_by_id(items, WISH_FOR_TREASURE_ID)
+	wish_for_quality_data = _wish_find_by_id(items, WISH_FOR_QUALITY_ID)
+	wish_for_fortune_data = _wish_find_by_id(items, WISH_FOR_FORTUNE_ID)
+	wish_for_knowledge_data = _wish_find_by_id(items, WISH_FOR_KNOWLEDGE_ID)
+	var default_items = [
+		wish_for_company_data,
+		wish_it_away_data,
+		wish_you_were_here_data,
+		wish_for_treasure_data,
+		wish_for_quality_data,
+		wish_for_fortune_data,
+		wish_for_knowledge_data
+	]
+	if wish_djinn_data == null or wish_shaman_data == null or default_items.has(null):
+		push_error("Wish could not find its default content after registration")
 		return
 
 	var changed = false
 	for character in [wish_djinn_data, wish_shaman_data]:
 		if not ProgressData.characters_unlocked.has(character.my_id_hash):
 			ProgressData.characters_unlocked.push_back(character.my_id_hash)
+			changed = true
+	for item in default_items:
+		if not ProgressData.items_unlocked.has(item.my_id_hash):
+			ProgressData.items_unlocked.push_back(item.my_id_hash)
 			changed = true
 
 	if _wish_sync_character_difficulty_unlocks(DJINN_ID):
@@ -77,7 +113,7 @@ func _wish_unlock_characters_after_profile_load() -> void:
 
 	if changed:
 		ProgressData.save()
-		ModLoaderLog.info("Unlocked Djinn and Shaman and synced available Danger modes", "Careful-Wish")
+		ModLoaderLog.info("Unlocked Djinn, Shaman, and Wish items and synced available Danger modes", "Careful-Wish")
 
 
 func _wish_sync_djinn_difficulty_unlocks() -> bool:
@@ -139,6 +175,13 @@ func _wish_install_content() -> void:
 		wish_shaman_data = _wish_find_by_id(characters, SHAMAN_ID)
 		wish_lamp_data = _wish_find_by_id(items, LAMP_ID)
 		wish_paw_data = _wish_find_by_id(items, PAW_ID)
+		wish_for_company_data = _wish_find_by_id(items, COMPANY_WISH_ID)
+		wish_it_away_data = _wish_find_by_id(items, WISH_IT_AWAY_ID)
+		wish_you_were_here_data = _wish_find_by_id(items, WISH_YOU_WERE_HERE_ID)
+		wish_for_treasure_data = _wish_find_by_id(items, WISH_FOR_TREASURE_ID)
+		wish_for_quality_data = _wish_find_by_id(items, WISH_FOR_QUALITY_ID)
+		wish_for_fortune_data = _wish_find_by_id(items, WISH_FOR_FORTUNE_ID)
+		wish_for_knowledge_data = _wish_find_by_id(items, WISH_FOR_KNOWLEDGE_ID)
 		wish_resource_data = _wish_find_by_id(items, WISH_RESOURCE_ID)
 		wish_placeholder_data = _wish_find_by_id(items, PLACEHOLDER_ID)
 		return
@@ -151,6 +194,13 @@ func _wish_install_content() -> void:
 	var shaman_icon = _wish_load_png(MOD_DIR + "assets/wishmod_shaman.png")
 	var shaman_face_texture = _wish_load_png(MOD_DIR + "assets/wishmod_shaman_face.png")
 	var shaman_hat_texture = _wish_load_png(MOD_DIR + "assets/wishmod_shaman_hat.png")
+	var wish_for_friends_icon = _wish_load_png(MOD_DIR + "assets/wishmod_wish_for_friends.png")
+	var wish_it_away_icon = _wish_load_png(MOD_DIR + "assets/wishmod_wish_it_away.png")
+	var wish_you_were_here_icon = _wish_load_png(MOD_DIR + "assets/wishmod_wish_you_were_here.png")
+	var wish_for_treasure_icon = _wish_load_png(MOD_DIR + "assets/wishmod_wish_for_treasure.png")
+	var wish_for_quality_icon = _wish_load_png(MOD_DIR + "assets/wishmod_wish_for_quality.png")
+	var wish_for_fortune_icon = _wish_load_png(MOD_DIR + "assets/wishmod_wish_for_fortune.png")
+	var wish_for_knowledge_icon = _wish_load_png(MOD_DIR + "assets/wishmod_wish_for_knowledge.png")
 	for paw_charges in [0, 1, 2, 3]:
 		wish_paw_icons.push_back(_wish_load_png(MOD_DIR + "assets/wishmod_monkeys_paw_" + str(paw_charges) + ".png"))
 
@@ -187,6 +237,80 @@ func _wish_install_content() -> void:
 	wish_paw_data.tags = ["stat_curse", "stat_elemental_damage", "stat_lifesteal"]
 	wish_paw_data._generate_hashes()
 	items.push_back(wish_paw_data)
+
+	wish_for_company_data = ItemData.new()
+	wish_for_company_data.my_id = COMPANY_WISH_ID
+	wish_for_company_data.unlocked_by_default = true
+	wish_for_company_data.can_be_looted = true
+	wish_for_company_data.icon = wish_for_friends_icon
+	wish_for_company_data.name = "ITEM_WISH_FOR_COMPANY"
+	wish_for_company_data.tier = ItemParentData.Tier.RARE
+	wish_for_company_data.value = 50
+	wish_for_company_data.effects = [_wish_text_effect("WISH_FOR_COMPANY_EFFECT", 0)]
+	wish_for_company_data.tracking_text = ""
+	wish_for_company_data.is_lockable = true
+	wish_for_company_data.max_nb = 1
+	wish_for_company_data.item_appearances = []
+	wish_for_company_data.tags = []
+	wish_for_company_data._generate_hashes()
+	items.push_back(wish_for_company_data)
+
+	wish_it_away_data = _wish_create_item(
+		WISH_IT_AWAY_ID,
+		"ITEM_WISH_IT_AWAY",
+		wish_it_away_icon,
+		ItemParentData.Tier.RARE,
+		50,
+		[_wish_text_effect("WISH_IT_AWAY_EFFECT", 1)]
+	)
+
+	wish_you_were_here_data = _wish_create_item(
+		WISH_YOU_WERE_HERE_ID,
+		"ITEM_WISH_YOU_WERE_HERE",
+		wish_you_were_here_icon,
+		ItemParentData.Tier.RARE,
+		50,
+		[_wish_text_effect("WISH_YOU_WERE_HERE_EFFECT", 1)]
+	)
+
+	wish_for_treasure_data = _wish_create_item(
+		WISH_FOR_TREASURE_ID,
+		"ITEM_WISH_FOR_TREASURE",
+		wish_for_treasure_icon,
+		ItemParentData.Tier.RARE,
+		50,
+		[_wish_text_effect("WISH_FOR_TREASURE_EFFECT", 1)]
+	)
+
+	wish_for_quality_data = _wish_create_item(
+		WISH_FOR_QUALITY_ID,
+		"ITEM_WISH_FOR_QUALITY",
+		wish_for_quality_icon,
+		ItemParentData.Tier.LEGENDARY,
+		90,
+		[_wish_text_effect("WISH_FOR_QUALITY_EFFECT", 1)]
+	)
+
+	wish_for_fortune_data = _wish_create_item(
+		WISH_FOR_FORTUNE_ID,
+		"ITEM_WISH_FOR_FORTUNE",
+		wish_for_fortune_icon,
+		ItemParentData.Tier.RARE,
+		50,
+		[_wish_text_effect("WISH_FOR_FORTUNE_EFFECT", 25)]
+	)
+
+	wish_for_knowledge_data = _wish_create_item(
+		WISH_FOR_KNOWLEDGE_ID,
+		"ITEM_WISH_FOR_KNOWLEDGE",
+		wish_for_knowledge_icon,
+		ItemParentData.Tier.UNCOMMON,
+		35,
+		[
+			_wish_stat_effect("xp_gain", 15),
+			_wish_stat_effect("danger_enemy_health", 5)
+		]
+	)
 
 	wish_resource_data = ItemData.new()
 	wish_resource_data.my_id = WISH_RESOURCE_ID
@@ -332,20 +456,39 @@ func _wish_install_content() -> void:
 	ChallengeService.challenges.push_back(wish_shaman_challenge_data)
 	ChallengeService.hash_to_id[wish_shaman_challenge_data.my_id_hash] = SHAMAN_CHALLENGE_ID
 
-	ModLoaderLog.info("Registered Djinn, Shaman, Magic Lamp, Monkey's Paw, and challenges", "Careful-Wish")
+	ModLoaderLog.info("Registered Djinn, Shaman, Magic Lamp, Monkey's Paw, seven Wish items, and challenges", "Careful-Wish")
 
 
 func apply_item_effect_modifications(item: ItemParentData, player_index: int) -> ItemParentData:
 	var result = .apply_item_effect_modifications(item, player_index)
-	if result == null or result.my_id != LAMP_ID or not result.is_cursed:
+	if result == null or not result.is_cursed:
 		return result
 
-	var discount = wish_get_lamp_discount(result)
-	for effect in result.effects:
-		if effect.text_key == "WISH_CURSED_LAMP_EFFECT":
-			effect.value = discount
-			return result
-	result.effects.push_back(_wish_text_effect("WISH_CURSED_LAMP_EFFECT", discount))
+	if result.my_id == LAMP_ID:
+		var discount = wish_get_lamp_discount(result)
+		for effect in result.effects:
+			if effect.text_key == "WISH_CURSED_LAMP_EFFECT":
+				effect.value = discount
+				return result
+		result.effects.push_back(_wish_text_effect("WISH_CURSED_LAMP_EFFECT", discount))
+	elif result.my_id == COMPANY_WISH_ID:
+		for effect in result.effects:
+			if effect.text_key == "WISH_FOR_COMPANY_CURSED_EFFECT":
+				return result
+		result.effects.push_back(_wish_text_effect("WISH_FOR_COMPANY_CURSED_EFFECT", 10))
+	elif result.my_id == WISH_IT_AWAY_ID:
+		_wish_set_text_effect_value(result, "WISH_IT_AWAY_EFFECT", 2)
+	elif result.my_id == WISH_YOU_WERE_HERE_ID:
+		_wish_set_text_effect_value(result, "WISH_YOU_WERE_HERE_EFFECT", 2)
+	elif result.my_id == WISH_FOR_TREASURE_ID:
+		_wish_set_text_effect_value(result, "WISH_FOR_TREASURE_EFFECT", 2)
+	elif result.my_id == WISH_FOR_QUALITY_ID:
+		_wish_set_text_effect_value(result, "WISH_FOR_QUALITY_EFFECT", 2)
+	elif result.my_id == WISH_FOR_FORTUNE_ID:
+		_wish_set_text_effect_value(result, "WISH_FOR_FORTUNE_EFFECT", 40)
+	elif result.my_id == WISH_FOR_KNOWLEDGE_ID:
+		_wish_set_stat_effect_value(result, "xp_gain", 25)
+		_wish_set_stat_effect_value(result, "danger_enemy_health", 5)
 	return result
 
 
@@ -373,12 +516,14 @@ func get_player_shop_items(wave: int, player_index: int, args: ItemServiceGetSho
 
 
 func get_consumable_to_drop(unit: Unit, item_chance: float) -> ConsumableData:
+	if RunData.crooked_consume_hunter_crate_if_needed(unit):
+		return get_consumable_for_tier(Tier.UNCOMMON)
+	if RunData.wish_consume_guaranteed_crate_if_needed(unit):
+		return get_consumable_for_tier(Tier.UNCOMMON)
+
 	var result = .get_consumable_to_drop(unit, item_chance)
 	if result == null:
 		return null
-
-	if RunData.crooked_consume_hunter_crate_if_needed(unit):
-		return get_consumable_for_tier(Tier.UNCOMMON)
 
 	if (
 		RunData.crooked_has_active_calamity(RunData.CALAMITY_FAMINE)
@@ -457,6 +602,40 @@ func wish_get_active_lamp_icon():
 
 func wish_get_used_lamp_icon():
 	return wish_lamp_used_icon
+
+
+func _wish_create_item(item_id: String, name_key: String, icon, tier: int, value: int, effects: Array) -> ItemData:
+	var item = ItemData.new()
+	item.my_id = item_id
+	item.unlocked_by_default = true
+	item.can_be_looted = true
+	item.icon = icon
+	item.name = name_key
+	item.tier = tier
+	item.value = value
+	item.effects = effects
+	item.tracking_text = ""
+	item.is_lockable = true
+	item.max_nb = 1
+	item.item_appearances = []
+	item.tags = []
+	item._generate_hashes()
+	items.push_back(item)
+	return item
+
+
+func _wish_set_text_effect_value(item: ItemParentData, text_key: String, value: int) -> void:
+	for effect in item.effects:
+		if effect.text_key == text_key:
+			effect.value = value
+			return
+
+
+func _wish_set_stat_effect_value(item: ItemParentData, stat_key: String, value: int) -> void:
+	for effect in item.effects:
+		if effect.key == stat_key:
+			effect.value = value
+			return
 
 
 func _wish_text_effect(text_key: String, value: int) -> Effect:

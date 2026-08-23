@@ -38,8 +38,42 @@ func fill_shop_items(player_locked_items: Array, player_index: int, just_entered
 		effective_locked_items = _wish_trim_locks_for_delivery(player_index, delivery_ids.size())
 
 	.fill_shop_items(effective_locked_items, player_index, just_entered_shop)
+	if just_entered_shop:
+		_wish_insert_quality_items(effective_locked_items.size(), player_index)
 	if not delivery_ids.empty():
 		_wish_insert_deliveries_into_shop(delivery_ids, effective_locked_items.size(), player_index)
+
+
+func _wish_insert_quality_items(first_unlocked_index: int, player_index: int) -> void:
+	var remaining = RunData.wish_take_quality_slots(player_index)
+	if remaining <= 0:
+		return
+
+	for shop_index in range(first_unlocked_index, ItemService.NB_SHOP_ITEMS):
+		if remaining <= 0:
+			break
+		var entry = _shop_items[player_index][shop_index]
+		if not _wish_is_placeholder_entry(entry) and entry[0].tier >= ItemParentData.Tier.RARE:
+			remaining -= 1
+			continue
+
+		var candidates = []
+		for item in ItemService.items:
+			if item != null and item.tier >= ItemParentData.Tier.RARE and _wish_is_item_eligible(item, player_index, false):
+				candidates.push_back(item)
+		if candidates.empty():
+			break
+
+		var quality_item = Utils.get_rand_element(candidates)
+		var modified_item = ItemService.apply_item_effect_modifications(quality_item, player_index)
+		_shop_items[player_index][shop_index] = [modified_item, RunData.current_wave]
+		remaining -= 1
+
+	if remaining > 0:
+		RunData.wish_queue_quality_slots(remaining, player_index)
+		ModLoaderLog.warning("Deferred " + str(remaining) + " Wish for Quality reward(s) because no eligible slot was available", "Careful-Wish")
+	else:
+		ModLoaderLog.info("Applied Wish for Quality to the next shop for player " + str(player_index + 1), "Careful-Wish")
 
 
 func _wish_trim_locks_for_delivery(player_index: int, delivery_count: int) -> Array:

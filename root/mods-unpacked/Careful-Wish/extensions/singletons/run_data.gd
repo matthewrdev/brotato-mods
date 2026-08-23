@@ -12,6 +12,13 @@ const DJINN_ID = "character_djinn"
 const SHAMAN_ID = "character_shaman"
 const LAMP_ID = "item_magic_lamp"
 const PAW_ID = "item_monkeys_paw"
+const COMPANY_WISH_ID = "item_wish_for_company"
+const WISH_IT_AWAY_ID = "item_wish_it_away"
+const WISH_YOU_WERE_HERE_ID = "item_wish_you_were_here"
+const WISH_FOR_TREASURE_ID = "item_wish_for_treasure"
+const WISH_FOR_QUALITY_ID = "item_wish_for_quality"
+const WISH_FOR_FORTUNE_ID = "item_wish_for_fortune"
+const WISH_FOR_KNOWLEDGE_ID = "item_wish_for_knowledge"
 const WISH_RESOURCE_ID = "item_wish_resource"
 const WISH_STATE_KEY = "matthew_wish"
 const CROOKED_STATE_KEY = "matthew_crooked_wish"
@@ -23,6 +30,13 @@ const WISH_RESOURCE_VERSION = 1
 const DJINN_STARTING_WISHES = 3
 const PAW_MAX_CHARGES = 3
 const NIGHT_ENEMY_SPEED_BONUS = 10
+const COMPANY_WISH_XP_BONUS = 10
+const WISH_IT_AWAY_ENEMY_HEALTH_BONUS = 10
+const WISH_FOR_TREASURE_ENEMY_DAMAGE_BONUS = 10
+const WISH_FOR_QUALITY_ENEMY_HEALTH_BONUS = 15
+const WISH_FOR_FORTUNE_ENEMY_DAMAGE_BONUS = 10
+const WISH_FOR_FORTUNE_LUCK_BONUS = 25
+const CURSED_WISH_FOR_FORTUNE_LUCK_BONUS = 40
 
 const CALAMITY_HUNTER = "hunter"
 const CALAMITY_HORDE = "horde"
@@ -40,6 +54,10 @@ const HUNTER_GROUP_PATH = "res://zones/common/elite/group_elite.tres"
 
 var wish_players = []
 var crooked_state = {}
+var wish_xp_gain_hash = Keys.generate_hash("xp_gain")
+var wish_enemy_health_hash = Keys.generate_hash("danger_enemy_health")
+var wish_enemy_damage_hash = Keys.generate_hash("danger_enemy_damage")
+var wish_luck_hash = Keys.generate_hash("stat_luck")
 
 
 func reset(restart: bool = false) -> void:
@@ -80,16 +98,58 @@ func add_item(item: ItemData, player_index: int, is_selection: bool = false) -> 
 			wish_queue_discount(ItemService.wish_get_lamp_discount(item), player_index)
 	elif item != null and item.my_id == PAW_ID:
 		crooked_grant_charges(PAW_MAX_CHARGES, player_index)
+	elif item != null and item.my_id == COMPANY_WISH_ID:
+		crooked_queue_calamity(CALAMITY_HORDE)
+		if item.is_cursed:
+			wish_queue_company_xp_bonus(player_index)
+	elif item != null and item.my_id == WISH_IT_AWAY_ID:
+		wish_grant_bans(2 if item.is_cursed else 1, player_index)
+		wish_queue_enemy_health_bonus(WISH_IT_AWAY_ENEMY_HEALTH_BONUS)
+	elif item != null and item.my_id == WISH_YOU_WERE_HERE_ID:
+		crooked_queue_calamity(CALAMITY_HUNTER, true)
+		if item.is_cursed:
+			wish_queue_guaranteed_crates(1)
+	elif item != null and item.my_id == WISH_FOR_TREASURE_ID:
+		wish_queue_guaranteed_crates(2 if item.is_cursed else 1)
+		wish_queue_enemy_damage_bonus(WISH_FOR_TREASURE_ENEMY_DAMAGE_BONUS)
+	elif item != null and item.my_id == WISH_FOR_QUALITY_ID:
+		wish_queue_quality_slots(2 if item.is_cursed else 1, player_index)
+		wish_queue_enemy_health_bonus(WISH_FOR_QUALITY_ENEMY_HEALTH_BONUS)
+	elif item != null and item.my_id == WISH_FOR_FORTUNE_ID:
+		wish_queue_fortune_luck(
+			CURSED_WISH_FOR_FORTUNE_LUCK_BONUS if item.is_cursed else WISH_FOR_FORTUNE_LUCK_BONUS,
+			player_index
+		)
+		wish_queue_enemy_damage_bonus(WISH_FOR_FORTUNE_ENEMY_DAMAGE_BONUS)
 
 
 func on_wave_start(timer: WaveTimer) -> void:
 	_crooked_activate_for_current_wave()
+	_wish_consume_wave_trigger_items()
 	.on_wave_start(timer)
 
 
 func on_wave_end() -> void:
 	.on_wave_end()
 	_crooked_finish_active_wave()
+
+
+func _wish_consume_wave_trigger_items() -> void:
+	var trigger_ids = [
+		COMPANY_WISH_ID,
+		WISH_IT_AWAY_ID,
+		WISH_YOU_WERE_HERE_ID,
+		WISH_FOR_TREASURE_ID,
+		WISH_FOR_QUALITY_ID,
+		WISH_FOR_FORTUNE_ID
+	]
+	for player_index in get_player_count():
+		for item_id in trigger_ids:
+			var item_hash = Keys.generate_hash(item_id)
+			var trigger_item = get_player_item(item_hash, player_index)
+			while trigger_item != null:
+				remove_item(trigger_item, player_index, true)
+				trigger_item = get_player_item(item_hash, player_index)
 
 
 func wish_has_access(player_index: int) -> bool:
@@ -248,9 +308,72 @@ func crooked_queue_random_calamity() -> String:
 	if available.empty():
 		available = CALAMITY_IDS.duplicate()
 	var selected = str(Utils.get_rand_element(available))
-	crooked_state.queued_calamities.push_back(selected)
-	crooked_state.calamity_target_wave = current_wave + 1
+	# Once every distinct Calamity is queued, Crooked Wishes may stack them as
+	# they did before explicit Calamity scheduling was introduced.
+	crooked_queue_calamity(selected, true)
 	return selected
+
+
+func crooked_queue_calamity(calamity_id: String, allow_duplicate: bool = false) -> bool:
+	if not CALAMITY_IDS.has(calamity_id):
+		return false
+	if allow_duplicate or not crooked_state.queued_calamities.has(calamity_id):
+		crooked_state.queued_calamities.push_back(calamity_id)
+	crooked_state.calamity_target_wave = current_wave + 1
+	return true
+
+
+func wish_queue_company_xp_bonus(player_index: int) -> void:
+	if player_index < 0 or player_index >= get_player_count():
+		return
+	if not crooked_state.queued_company_xp_players.has(player_index):
+		crooked_state.queued_company_xp_players.push_back(player_index)
+
+
+func wish_grant_bans(count: int, player_index: int) -> void:
+	if player_index < 0 or player_index >= get_player_count():
+		return
+	players_data[player_index].uses_ban = true
+	players_data[player_index].remaining_ban_token = int(players_data[player_index].remaining_ban_token) + max(0, count)
+
+
+func wish_queue_enemy_health_bonus(amount: int) -> void:
+	crooked_state.queued_enemy_health_bonus = int(crooked_state.queued_enemy_health_bonus) + max(0, amount)
+	crooked_state.calamity_target_wave = current_wave + 1
+
+
+func wish_queue_enemy_damage_bonus(amount: int) -> void:
+	crooked_state.queued_enemy_damage_bonus = int(crooked_state.queued_enemy_damage_bonus) + max(0, amount)
+	crooked_state.calamity_target_wave = current_wave + 1
+
+
+func wish_queue_guaranteed_crates(count: int) -> void:
+	crooked_state.queued_guaranteed_crates = int(crooked_state.queued_guaranteed_crates) + max(0, count)
+	crooked_state.calamity_target_wave = current_wave + 1
+
+
+func wish_queue_fortune_luck(amount: int, player_index: int) -> void:
+	if player_index < 0 or player_index >= get_player_count():
+		return
+	var key = str(player_index)
+	crooked_state.queued_fortune_luck[key] = int(crooked_state.queued_fortune_luck.get(key, 0)) + max(0, amount)
+	crooked_state.calamity_target_wave = current_wave + 1
+
+
+func wish_queue_quality_slots(count: int, player_index: int) -> void:
+	if player_index < 0 or player_index >= get_player_count():
+		return
+	var state = wish_get_player_state(player_index)
+	state.quality_slots = int(state.quality_slots) + max(0, count)
+
+
+func wish_take_quality_slots(player_index: int) -> int:
+	if player_index < 0 or player_index >= get_player_count():
+		return 0
+	var state = wish_get_player_state(player_index)
+	var count = max(0, int(state.quality_slots)) as int
+	state.quality_slots = 0
+	return count
 
 
 func crooked_get_queued_calamities() -> Array:
@@ -273,6 +396,13 @@ func crooked_consume_hunter_crate_if_needed(unit: Unit) -> bool:
 	if int(crooked_state.hunter_crates_remaining) <= 0:
 		return false
 	crooked_state.hunter_crates_remaining = int(crooked_state.hunter_crates_remaining) - 1
+	return true
+
+
+func wish_consume_guaranteed_crate_if_needed(unit: Unit) -> bool:
+	if unit == null or int(crooked_state.active_guaranteed_crates) <= 0:
+		return false
+	crooked_state.active_guaranteed_crates = int(crooked_state.active_guaranteed_crates) - 1
 	return true
 
 
@@ -354,6 +484,7 @@ func _wish_new_player() -> Dictionary:
 		"lamp_bought_this_shop": false,
 		"paw_charges": 0,
 		"paw_uses": 0,
+		"quality_slots": 0,
 		"discount_queue": [],
 		"delivery_result": "",
 		"layout_version": WISH_LAYOUT_VERSION,
@@ -381,6 +512,7 @@ func _wish_sanitize_player(saved) -> Dictionary:
 	result.lamp_bought_this_shop = bool(saved.get("lamp_bought_this_shop", false))
 	result.paw_charges = clamp(int(saved.get("paw_charges", 0)), 0, PAW_MAX_CHARGES) as int
 	result.paw_uses = max(0, int(saved.get("paw_uses", 0)))
+	result.quality_slots = max(0, int(saved.get("quality_slots", 0)))
 	if not result.pending_item_ids.empty():
 		result.phase = WISH_QUEUED_CURRENT_SHOP
 	else:
@@ -416,6 +548,16 @@ func _crooked_new_state() -> Dictionary:
 		"queued_calamities": [],
 		"calamity_target_wave": -1,
 		"active_calamities": [],
+		"queued_company_xp_players": [],
+		"active_company_xp_players": [],
+		"queued_enemy_health_bonus": 0,
+		"active_enemy_health_bonus": 0,
+		"queued_enemy_damage_bonus": 0,
+		"active_enemy_damage_bonus": 0,
+		"queued_fortune_luck": {},
+		"active_fortune_luck": {},
+		"queued_guaranteed_crates": 0,
+		"active_guaranteed_crates": 0,
 		"active_wave": -1,
 		"runtime_applied": false,
 		"runtime_effect_restores": {},
@@ -439,6 +581,27 @@ func _crooked_sanitize_state(saved) -> Dictionary:
 				var calamity_id = str(calamity_id_value)
 				if CALAMITY_IDS.has(calamity_id):
 					result[field_name].push_back(calamity_id)
+	for field_name in ["queued_company_xp_players", "active_company_xp_players"]:
+		var saved_players = saved.get(field_name, [])
+		if saved_players is Array:
+			for player_index_value in saved_players:
+				var player_index = int(player_index_value)
+				if player_index >= 0 and player_index < get_player_count() and not result[field_name].has(player_index):
+					result[field_name].push_back(player_index)
+	result.queued_enemy_health_bonus = max(0, int(saved.get("queued_enemy_health_bonus", 0)))
+	result.active_enemy_health_bonus = max(0, int(saved.get("active_enemy_health_bonus", 0)))
+	result.queued_enemy_damage_bonus = max(0, int(saved.get("queued_enemy_damage_bonus", 0)))
+	result.active_enemy_damage_bonus = max(0, int(saved.get("active_enemy_damage_bonus", 0)))
+	for field_name in ["queued_fortune_luck", "active_fortune_luck"]:
+		var saved_luck = saved.get(field_name, {})
+		if saved_luck is Dictionary:
+			for player_key in saved_luck:
+				var player_index = int(player_key)
+				var amount = max(0, int(saved_luck[player_key]))
+				if player_index >= 0 and player_index < get_player_count() and amount > 0:
+					result[field_name][str(player_index)] = amount
+	result.queued_guaranteed_crates = max(0, int(saved.get("queued_guaranteed_crates", 0)))
+	result.active_guaranteed_crates = max(0, int(saved.get("active_guaranteed_crates", 0)))
 	result.calamity_target_wave = int(saved.get("calamity_target_wave", -1))
 	result.active_wave = int(saved.get("active_wave", -1))
 	result.runtime_applied = bool(saved.get("runtime_applied", false))
@@ -477,17 +640,50 @@ func _crooked_update_player_paw_icon(player_index: int) -> void:
 
 
 func _crooked_activate_for_current_wave() -> void:
-	if crooked_state.active_calamities.empty() and not crooked_state.queued_calamities.empty():
-		crooked_state.active_calamities = crooked_state.queued_calamities.duplicate()
-		crooked_state.queued_calamities.clear()
-		crooked_state.active_wave = current_wave
-		crooked_state.calamity_target_wave = current_wave
-	elif not crooked_state.active_calamities.empty() and int(crooked_state.active_wave) != current_wave:
+	if _crooked_has_active_wave_effects() and int(crooked_state.active_wave) != current_wave:
 		_crooked_finish_active_wave()
 
-	if crooked_state.active_calamities.empty() or bool(crooked_state.runtime_applied):
+	if not _crooked_has_active_wave_effects() and _crooked_has_queued_wave_effects():
+		crooked_state.active_calamities = crooked_state.queued_calamities.duplicate()
+		crooked_state.queued_calamities.clear()
+		crooked_state.active_company_xp_players = crooked_state.queued_company_xp_players.duplicate()
+		crooked_state.queued_company_xp_players.clear()
+		crooked_state.active_enemy_health_bonus = int(crooked_state.queued_enemy_health_bonus)
+		crooked_state.queued_enemy_health_bonus = 0
+		crooked_state.active_enemy_damage_bonus = int(crooked_state.queued_enemy_damage_bonus)
+		crooked_state.queued_enemy_damage_bonus = 0
+		crooked_state.active_fortune_luck = crooked_state.queued_fortune_luck.duplicate(true)
+		crooked_state.queued_fortune_luck.clear()
+		crooked_state.active_guaranteed_crates = int(crooked_state.queued_guaranteed_crates)
+		crooked_state.queued_guaranteed_crates = 0
+		crooked_state.active_wave = current_wave
+		crooked_state.calamity_target_wave = current_wave
+
+	if not _crooked_has_active_wave_effects() or bool(crooked_state.runtime_applied):
 		return
 	_crooked_apply_runtime_effects()
+
+
+func _crooked_has_queued_wave_effects() -> bool:
+	return (
+		not crooked_state.queued_calamities.empty()
+		or not crooked_state.queued_company_xp_players.empty()
+		or int(crooked_state.queued_enemy_health_bonus) > 0
+		or int(crooked_state.queued_enemy_damage_bonus) > 0
+		or not crooked_state.queued_fortune_luck.empty()
+		or int(crooked_state.queued_guaranteed_crates) > 0
+	)
+
+
+func _crooked_has_active_wave_effects() -> bool:
+	return (
+		not crooked_state.active_calamities.empty()
+		or not crooked_state.active_company_xp_players.empty()
+		or int(crooked_state.active_enemy_health_bonus) > 0
+		or int(crooked_state.active_enemy_damage_bonus) > 0
+		or not crooked_state.active_fortune_luck.empty()
+		or int(crooked_state.active_guaranteed_crates) > 0
+	)
 
 
 func _crooked_apply_runtime_effects() -> void:
@@ -497,14 +693,34 @@ func _crooked_apply_runtime_effects() -> void:
 
 	var needs_night = crooked_has_active_calamity(CALAMITY_NIGHT)
 	var needs_frenzy = crooked_has_active_calamity(CALAMITY_FRENZY)
-	if needs_night or needs_frenzy:
+	var has_company_xp_bonus = not crooked_state.active_company_xp_players.empty()
+	var enemy_health_bonus = int(crooked_state.active_enemy_health_bonus)
+	var enemy_damage_bonus = int(crooked_state.active_enemy_damage_bonus)
+	var has_fortune_luck = not crooked_state.active_fortune_luck.empty()
+	if needs_night or needs_frenzy or has_company_xp_bonus or enemy_health_bonus > 0 or enemy_damage_bonus > 0 or has_fortune_luck:
 		for player_index in get_player_count():
 			var effects = get_player_effects(player_index)
 			crooked_state.runtime_effect_restores[str(player_index)] = {
 				"fog": effects[Keys.fog_of_war_event_hash],
 				"bullet": effects[Keys.bullet_hell_event_hash],
-				"enemy_speed": effects[Keys.enemy_speed_hash]
+				"enemy_speed": effects[Keys.enemy_speed_hash],
+				"xp_gain": effects.get(wish_xp_gain_hash, 0),
+				"enemy_health": effects.get(wish_enemy_health_hash, 0),
+				"enemy_damage": effects.get(wish_enemy_damage_hash, 0),
+				"luck": effects.get(wish_luck_hash, 0)
 			}
+			if crooked_state.active_company_xp_players.has(player_index):
+				effects[wish_xp_gain_hash] = int(effects.get(wish_xp_gain_hash, 0)) + COMPANY_WISH_XP_BONUS
+			var fortune_luck = int(crooked_state.active_fortune_luck.get(str(player_index), 0))
+			if fortune_luck > 0:
+				effects[wish_luck_hash] = int(effects.get(wish_luck_hash, 0)) + fortune_luck
+			# Enemy Health and Damage are global effects, so stacked Wish prices are
+			# applied once rather than once per co-op player.
+			if player_index == 0:
+				if enemy_health_bonus > 0:
+					effects[wish_enemy_health_hash] = int(effects.get(wish_enemy_health_hash, 0)) + enemy_health_bonus
+				if enemy_damage_bonus > 0:
+					effects[wish_enemy_damage_hash] = int(effects.get(wish_enemy_damage_hash, 0)) + enemy_damage_bonus
 			if needs_night:
 				effects[Keys.fog_of_war_event_hash] = max(1, int(effects[Keys.fog_of_war_event_hash]))
 				# Enemy speed is global, so apply the +10% calamity bonus once
@@ -534,9 +750,13 @@ func _crooked_apply_runtime_effects() -> void:
 			crooked_state.horde_event_added = true
 
 	if crooked_has_active_calamity(CALAMITY_HUNTER):
-		if crooked_state.hunter_elite_ids.empty():
+		var hunter_count = crooked_state.active_calamities.count(CALAMITY_HUNTER)
+		while crooked_state.hunter_elite_ids.size() < hunter_count:
 			crooked_state.hunter_elite_ids.push_back(ItemService.get_random_elite_id_hash_from_zone(ZoneService.current_zone.my_id))
-		crooked_state.hunter_crates_remaining = crooked_state.hunter_elite_ids.size()
+		crooked_state.hunter_crates_remaining = max(
+			int(crooked_state.hunter_crates_remaining),
+			crooked_state.hunter_elite_ids.size()
+		)
 		_crooked_queue_hunter_elites()
 
 
@@ -544,18 +764,22 @@ func _crooked_queue_hunter_elites() -> void:
 	if get_player_count() <= 0:
 		return
 	var effects = get_player_effects(0)
+	var queued_counts = {}
+	for effect in effects[Keys.extra_enemies_next_wave_hash]:
+		if effect.size() >= 3 and effect[0] == HUNTER_GROUP_PATH:
+			var queued_key = str(int(effect[2]))
+			queued_counts[queued_key] = int(queued_counts.get(queued_key, 0)) + 1
+	var desired_counts = {}
 	for elite_id in crooked_state.hunter_elite_ids:
-		var already_queued = false
-		for effect in effects[Keys.extra_enemies_next_wave_hash]:
-			if effect.size() >= 3 and effect[0] == HUNTER_GROUP_PATH and int(effect[2]) == int(elite_id):
-				already_queued = true
-				break
-		if not already_queued:
+		var elite_key = str(int(elite_id))
+		desired_counts[elite_key] = int(desired_counts.get(elite_key, 0)) + 1
+		if int(queued_counts.get(elite_key, 0)) < int(desired_counts[elite_key]):
 			effects[Keys.extra_enemies_next_wave_hash].push_back([HUNTER_GROUP_PATH, 1, int(elite_id)])
+			queued_counts[elite_key] = int(queued_counts.get(elite_key, 0)) + 1
 
 
 func _crooked_finish_active_wave() -> void:
-	if crooked_state.empty() or crooked_state.active_calamities.empty():
+	if crooked_state.empty() or not _crooked_has_active_wave_effects():
 		return
 
 	for player_index in get_player_count():
@@ -565,6 +789,10 @@ func _crooked_finish_active_wave() -> void:
 			effects[Keys.fog_of_war_event_hash] = restore.get("fog", effects[Keys.fog_of_war_event_hash])
 			effects[Keys.bullet_hell_event_hash] = restore.get("bullet", effects[Keys.bullet_hell_event_hash])
 			effects[Keys.enemy_speed_hash] = restore.get("enemy_speed", effects[Keys.enemy_speed_hash])
+			effects[wish_xp_gain_hash] = restore.get("xp_gain", effects.get(wish_xp_gain_hash, 0))
+			effects[wish_enemy_health_hash] = restore.get("enemy_health", effects.get(wish_enemy_health_hash, 0))
+			effects[wish_enemy_damage_hash] = restore.get("enemy_damage", effects.get(wish_enemy_damage_hash, 0))
+			effects[wish_luck_hash] = restore.get("luck", effects.get(wish_luck_hash, 0))
 
 	constant_projectile = int(crooked_state.original_constant_projectile)
 	if bool(crooked_state.fog_event_added):
@@ -580,8 +808,18 @@ func _crooked_finish_active_wave() -> void:
 	_crooked_remove_hunter_elites()
 
 	var queued_for_later = crooked_state.queued_calamities.duplicate()
+	var queued_company_xp_for_later = crooked_state.queued_company_xp_players.duplicate()
+	var queued_enemy_health_for_later = int(crooked_state.queued_enemy_health_bonus)
+	var queued_enemy_damage_for_later = int(crooked_state.queued_enemy_damage_bonus)
+	var queued_fortune_luck_for_later = crooked_state.queued_fortune_luck.duplicate(true)
+	var queued_crates_for_later = int(crooked_state.queued_guaranteed_crates)
 	crooked_state = _crooked_new_state()
 	crooked_state.queued_calamities = queued_for_later
+	crooked_state.queued_company_xp_players = queued_company_xp_for_later
+	crooked_state.queued_enemy_health_bonus = queued_enemy_health_for_later
+	crooked_state.queued_enemy_damage_bonus = queued_enemy_damage_for_later
+	crooked_state.queued_fortune_luck = queued_fortune_luck_for_later
+	crooked_state.queued_guaranteed_crates = queued_crates_for_later
 
 
 func _crooked_remove_hunter_elites() -> void:

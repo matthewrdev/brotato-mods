@@ -12,6 +12,12 @@
   endless restrictions, and removed shop groups.
 - Magic Lamp is never wishable. It is repeatable across a run, limited to one
   purchase per shop visit, and cannot be locked or banned.
+- The seven unlocked-by-default Wish items can be rolled, looted, or selected
+  through Wish once their tiers are available. Six are one-wave triggers and
+  are consumed when the promised wave begins; Wish for Knowledge is permanent.
+- Cursed Wish items improve the reward while retaining the same negative
+  effect. Temporary player and enemy stats are restored from captured pre-wave
+  values, so they compose with other mods and co-op players.
 
 Djinn and Crooked Wish unlock Uncommon on wave 1, Rare on wave 3, and Legendary
 on wave 6. Other Lamp-enabled characters use waves 2, 4, and 8.
@@ -25,6 +31,7 @@ Per-player Wish state stores:
     "phase": WISH_AVAILABLE,
     "wish_count": 0,
     "pending_item_ids": [],
+    "quality_slots": 0,
     "discount_queue": [],
     "layout_version": 3,
     "resource_version": 1,
@@ -34,10 +41,16 @@ Per-player Wish state stores:
 The queue survives leaving the shop and save/resume. It clears only after a
 successful reroll inserts the items.
 
+The shared Crooked/Wish wave state stores queued and active Calamities,
+temporary enemy Health and Damage, per-player XP Gain and Luck, guaranteed
+crate drops, and the exact effect values to restore. Duplicate Hunter entries
+remain distinct, allowing Wish You Were Here to stack with a Crooked Hunter.
+
 ## Shop hooks
 
 - `BaseShop.fill_shop_items`: preserve locked cards, run vanilla generation,
-  then replace reserved unlocked results with queued items.
+  then replace reserved unlocked results with queued items. On a new shop,
+  apply pending Wish for Quality upgrades only to unlocked normal slots.
 - `BaseShop._on_RerollButton_pressed`: refresh Wish UI after native reroll.
 - `BaseShop.on_shop_item_bought`: keep native purchase handling, then refresh
   Wish state, Lamp limits, and cursed-Lamp prices.
@@ -61,3 +74,22 @@ Monkey's Paw globally. Both characters inherit only the profile's selectable
 Danger ceiling, not victories.
 
 The current local target is Brotato `1.1.12.0.beta-3` with ModLoader `6.3.0`.
+
+## Wish item catalogue
+
+- **Wish for Friends (Rare):** queue Brotato's native Horde rules for the next
+  wave. A cursed copy grants its owner +10% XP Gain during that Horde only.
+- **Wish It Away (Rare):** gain 1 Ban; the next wave gives enemies +10% Health. A
+  cursed copy grants 2 Bans with the same consequence.
+- **Wish You Were Here (Rare):** an additional Elite appears next wave and
+  drops a guaranteed crate. A cursed copy guarantees a second normal crate
+  during the same wave.
+- **Wish for Treasure (Rare):** guarantee a crate drop during the next wave,
+  while enemies deal +10% Damage. A cursed copy guarantees 2 crates.
+- **Wish for Quality (Legendary):** guarantee that one unlocked item in the
+  shop after next wave is at least Rare; the
+  next wave gives enemies +15% Health. A cursed copy guarantees 2 items.
+- **Wish for Fortune (Rare):** gain +25 Luck for the next wave while enemies deal +10%
+  Damage. A cursed copy grants +40 Luck.
+- **Wish for Knowledge (Uncommon):** permanently gain +15% XP Gain while enemies gain +5%
+  Health. A cursed copy grants +25% XP Gain with the same consequence.
