@@ -43,6 +43,9 @@ mod profile. Pass another folder as the first argument when needed.
 
 ### Wish items
 
+- Wish It Away, Wish You Were Here, Wish for Treasure, Wish for Quality, Wish
+  for Fortune, and Wish for Knowledge do not display the Unique label. Multiple
+  copies can be bought and their rewards and consequences stack.
 - Wish It Away grants 1 Ban token immediately (2 when cursed), enables banning
   if the run had no starting bans, and gives enemies +10% Health for the next
   wave only.
@@ -55,12 +58,13 @@ mod profile. Pass another folder as the first argument when needed.
 - Wish for Quality makes 1 unlocked slot in the shop after the next wave at
   least Rare (2 when cursed) without replacing locked cards. Enemies have +15%
   Health during the intervening wave.
-- Wish for Fortune grants its owner +25 Luck for the next wave (+40 when
-  cursed), gives enemies +10% Damage, and restores the previous Luck and enemy
-  Damage values at wave end.
-- Wish for Knowledge permanently grants +15% XP Gain (+25% when cursed) and
-  permanently gives enemies +5% Health. It remains in the inventory.
-- The six wave-triggered Wish items are consumed when their promised wave
+- Wish for Fortune permanently grants its owner +25 Luck (+40 when cursed),
+  remains in the inventory, and gives enemies +10% Damage for the next wave
+  only.
+- Wish for Knowledge permanently grants +30% XP Gain (+40% when cursed) and
+  permanently increases the total number of enemies by 2%. It remains in the
+  inventory.
+- The five wave-triggered Wish items are consumed when their promised wave
   begins and can roll again in a later shop. Their queued effects survive
   save/resume and stack their enemy Health or Damage prices where applicable.
 

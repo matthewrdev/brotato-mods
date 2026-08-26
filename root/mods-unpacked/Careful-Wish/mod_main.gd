@@ -43,7 +43,7 @@ func _install_translations() -> void:
 		"WISH_YOU_WERE_HERE_EFFECT": "An additional Elite appears next wave\n{0} guaranteed crate(s)\nConsumed when the wave begins",
 		"WISH_FOR_TREASURE_EFFECT": "Next wave drops {0} guaranteed crate(s)\nEnemies deal +10% Damage\nConsumed when the wave begins",
 		"WISH_FOR_QUALITY_EFFECT": "{0} unlocked shop slot(s) after next wave are at least Rare\nNext wave: enemies have +15% Health\nConsumed when the wave begins",
-		"WISH_FOR_FORTUNE_EFFECT": "+{0} Luck next wave\nEnemies deal +10% Damage\nConsumed when the wave begins",
+		"WISH_FOR_FORTUNE_EFFECT": "+{0} Luck\nNext wave: enemies deal +10% Damage",
 		"WISH_RESOURCE_EFFECT": "Consumed when making a Wish",
 		"WISH_CHARACTER_EFFECT": "Starts with 3 Wishes\nWishes demand materials",
 		"WISH_LAMP_EFFECT": "+{0} Wish\nGrants access to Wish",

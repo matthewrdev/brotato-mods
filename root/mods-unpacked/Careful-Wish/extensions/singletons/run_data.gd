@@ -35,8 +35,6 @@ const WISH_IT_AWAY_ENEMY_HEALTH_BONUS = 10
 const WISH_FOR_TREASURE_ENEMY_DAMAGE_BONUS = 10
 const WISH_FOR_QUALITY_ENEMY_HEALTH_BONUS = 15
 const WISH_FOR_FORTUNE_ENEMY_DAMAGE_BONUS = 10
-const WISH_FOR_FORTUNE_LUCK_BONUS = 25
-const CURSED_WISH_FOR_FORTUNE_LUCK_BONUS = 40
 
 const CALAMITY_HUNTER = "hunter"
 const CALAMITY_HORDE = "horde"
@@ -116,10 +114,6 @@ func add_item(item: ItemData, player_index: int, is_selection: bool = false) -> 
 		wish_queue_quality_slots(2 if item.is_cursed else 1, player_index)
 		wish_queue_enemy_health_bonus(WISH_FOR_QUALITY_ENEMY_HEALTH_BONUS)
 	elif item != null and item.my_id == WISH_FOR_FORTUNE_ID:
-		wish_queue_fortune_luck(
-			CURSED_WISH_FOR_FORTUNE_LUCK_BONUS if item.is_cursed else WISH_FOR_FORTUNE_LUCK_BONUS,
-			player_index
-		)
 		wish_queue_enemy_damage_bonus(WISH_FOR_FORTUNE_ENEMY_DAMAGE_BONUS)
 
 
@@ -140,8 +134,7 @@ func _wish_consume_wave_trigger_items() -> void:
 		WISH_IT_AWAY_ID,
 		WISH_YOU_WERE_HERE_ID,
 		WISH_FOR_TREASURE_ID,
-		WISH_FOR_QUALITY_ID,
-		WISH_FOR_FORTUNE_ID
+		WISH_FOR_QUALITY_ID
 	]
 	for player_index in get_player_count():
 		for item_id in trigger_ids:
@@ -349,14 +342,6 @@ func wish_queue_enemy_damage_bonus(amount: int) -> void:
 
 func wish_queue_guaranteed_crates(count: int) -> void:
 	crooked_state.queued_guaranteed_crates = int(crooked_state.queued_guaranteed_crates) + max(0, count)
-	crooked_state.calamity_target_wave = current_wave + 1
-
-
-func wish_queue_fortune_luck(amount: int, player_index: int) -> void:
-	if player_index < 0 or player_index >= get_player_count():
-		return
-	var key = str(player_index)
-	crooked_state.queued_fortune_luck[key] = int(crooked_state.queued_fortune_luck.get(key, 0)) + max(0, amount)
 	crooked_state.calamity_target_wave = current_wave + 1
 
 

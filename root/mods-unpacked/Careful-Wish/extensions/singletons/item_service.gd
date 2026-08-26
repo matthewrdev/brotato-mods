@@ -297,7 +297,14 @@ func _wish_install_content() -> void:
 		wish_for_fortune_icon,
 		ItemParentData.Tier.RARE,
 		50,
-		[_wish_text_effect("WISH_FOR_FORTUNE_EFFECT", 25)]
+		[
+			_wish_labeled_stat_effect(
+				"stat_luck",
+				"WISH_FOR_FORTUNE_EFFECT",
+				25,
+				Effect.Sign.POSITIVE
+			)
+		]
 	)
 
 	wish_for_knowledge_data = _wish_create_item(
@@ -307,8 +314,13 @@ func _wish_install_content() -> void:
 		ItemParentData.Tier.UNCOMMON,
 		35,
 		[
-			_wish_stat_effect("xp_gain", 15),
-			_wish_stat_effect("danger_enemy_health", 5)
+			_wish_stat_effect("xp_gain", 30),
+			_wish_labeled_stat_effect(
+				"number_of_enemies",
+				"",
+				2,
+				Effect.Sign.NEGATIVE
+			)
 		]
 	)
 
@@ -485,10 +497,10 @@ func apply_item_effect_modifications(item: ItemParentData, player_index: int) ->
 	elif result.my_id == WISH_FOR_QUALITY_ID:
 		_wish_set_text_effect_value(result, "WISH_FOR_QUALITY_EFFECT", 2)
 	elif result.my_id == WISH_FOR_FORTUNE_ID:
-		_wish_set_text_effect_value(result, "WISH_FOR_FORTUNE_EFFECT", 40)
+		_wish_set_stat_effect_value(result, "stat_luck", 40)
 	elif result.my_id == WISH_FOR_KNOWLEDGE_ID:
-		_wish_set_stat_effect_value(result, "xp_gain", 25)
-		_wish_set_stat_effect_value(result, "danger_enemy_health", 5)
+		_wish_set_stat_effect_value(result, "xp_gain", 40)
+		_wish_set_stat_effect_value(result, "number_of_enemies", 2)
 	return result
 
 
@@ -616,7 +628,7 @@ func _wish_create_item(item_id: String, name_key: String, icon, tier: int, value
 	item.effects = effects
 	item.tracking_text = ""
 	item.is_lockable = true
-	item.max_nb = 1
+	item.max_nb = -1
 	item.item_appearances = []
 	item.tags = []
 	item._generate_hashes()
@@ -653,6 +665,13 @@ func _wish_stat_effect(stat_key: String, value: int) -> Effect:
 	effect.text_key = ""
 	effect.value = value
 	effect.effect_sign = Effect.Sign.NEUTRAL
+	return effect
+
+
+func _wish_labeled_stat_effect(stat_key: String, text_key: String, value: int, effect_sign: int) -> Effect:
+	var effect = _wish_stat_effect(stat_key, value)
+	effect.text_key = text_key
+	effect.effect_sign = effect_sign
 	return effect
 
 

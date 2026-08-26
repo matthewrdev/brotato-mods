@@ -42,7 +42,8 @@ wave and survive save/resume.
 
 Most Wish items are consumed when their promised wave begins, allowing them to
 appear again later in the run. Cursed copies improve the reward without making
-the listed price worse.
+the listed price worse. The six additional Wish items are repeatable rather
+than Unique, and multiple copies stack their rewards and consequences.
 
 - **Wish for Friends** (Rare): the next wave is a Horde. A cursed copy grants
   +10% XP Gain during that Horde.
@@ -55,11 +56,11 @@ the listed price worse.
 - **Wish for Quality** (Legendary): an unlocked slot in the shop after the next
   wave is at least Rare, while that wave's enemies have +15% Health. A cursed
   copy upgrades two slots.
-- **Wish for Fortune** (Rare): gain +25 Luck for the next wave while enemies
-  deal +10% Damage. A cursed copy grants +40 Luck.
-- **Wish for Knowledge** (Uncommon): permanently gain +15% XP Gain while
-  enemies permanently gain +5% Health. A cursed copy grants +25% XP Gain with
-  the same consequence.
+- **Wish for Fortune** (Rare): permanently gain +25 Luck, while enemies deal
+  +10% Damage during the next wave. A cursed copy permanently grants +40 Luck.
+- **Wish for Knowledge** (Uncommon): permanently gain +30% XP Gain while the
+  total number of enemies permanently increases by 2%. A cursed copy grants
+  +40% XP Gain with the same consequence.
 
 Magic Lamp becomes available to other characters after winning as Djinn.
 Monkey's Paw becomes available to other characters after winning as Shaman.

@@ -13,8 +13,11 @@
 - Magic Lamp is never wishable. It is repeatable across a run, limited to one
   purchase per shop visit, and cannot be locked or banned.
 - The seven unlocked-by-default Wish items can be rolled, looted, or selected
-  through Wish once their tiers are available. Six are one-wave triggers and
-  are consumed when the promised wave begins; Wish for Knowledge is permanent.
+  through Wish once their tiers are available. Five are one-wave triggers and
+  are consumed when the promised wave begins; Wish for Fortune and Wish for
+  Knowledge are permanent.
+- The six additional Wish items are repeatable (`max_nb = -1`), so copies may
+  be held together and their rewards and consequences stack.
 - Cursed Wish items improve the reward while retaining the same negative
   effect. Temporary player and enemy stats are restored from captured pre-wave
   values, so they compose with other mods and co-op players.
@@ -89,7 +92,8 @@ The current local target is Brotato `1.1.12.0.beta-3` with ModLoader `6.3.0`.
 - **Wish for Quality (Legendary):** guarantee that one unlocked item in the
   shop after next wave is at least Rare; the
   next wave gives enemies +15% Health. A cursed copy guarantees 2 items.
-- **Wish for Fortune (Rare):** gain +25 Luck for the next wave while enemies deal +10%
-  Damage. A cursed copy grants +40 Luck.
-- **Wish for Knowledge (Uncommon):** permanently gain +15% XP Gain while enemies gain +5%
-  Health. A cursed copy grants +25% XP Gain with the same consequence.
+- **Wish for Fortune (Rare):** permanently gain +25 Luck while enemies deal
+  +10% Damage during the next wave. A cursed copy permanently grants +40 Luck.
+- **Wish for Knowledge (Uncommon):** permanently gain +30% XP Gain while the
+  total number of enemies permanently increases by 2%. A cursed copy grants
+  +40% XP Gain with the same consequence.
