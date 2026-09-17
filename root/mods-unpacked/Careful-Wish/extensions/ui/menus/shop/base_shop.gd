@@ -12,6 +12,10 @@ var _wish_picker_titles = [null, null, null, null]
 var _wish_picker_lists = [null, null, null, null]
 var _wish_picker_cost_labels = [null, null, null, null]
 var _wish_picker_confirm_buttons = [null, null, null, null]
+var _wish_picker_cancel_buttons = [null, null, null, null]
+var _wish_picker_search_fields = [null, null, null, null]
+var _wish_picker_return_focus = [null, null, null, null]
+var _wish_reroll_left_neighbors = [null, null, null, null]
 
 
 func _ready() -> void:
@@ -25,6 +29,7 @@ func _ready() -> void:
 		_crooked_create_action_button(player_index)
 		_wish_create_picker(player_index)
 		_wish_refresh_action(player_index)
+		_wish_update_action_focus(player_index)
 	if migrated_legacy_shop:
 		_update_visual_locks()
 		ProgressData.save_run_state(_shop_items, _reroll_count, _paid_reroll_count, _initial_free_rerolls, _free_rerolls, _item_steals)
@@ -244,6 +249,7 @@ func _wish_migrate_legacy_shop(player_index: int) -> bool:
 
 func _wish_create_action_button(player_index: int) -> void:
 	var reroll_button = _get_reroll_button(player_index)
+	_wish_reroll_left_neighbors[player_index] = reroll_button.focus_neighbor_left
 	var header = reroll_button.get_parent()
 	# Wish and Crooked Wish can coexist. Keep each action to one icon-sized
 	# control so the native shop header still fits at narrow resolutions.
@@ -275,6 +281,32 @@ func _crooked_create_action_button(player_index: int) -> void:
 	_crooked_action_buttons[player_index] = button
 
 
+func _wish_update_action_focus(player_index: int) -> void:
+	var reroll_button = _get_reroll_button(player_index)
+	var wish_button = _wish_action_buttons[player_index]
+	var crooked_button = _crooked_action_buttons[player_index]
+	var actions = []
+	if wish_button != null and wish_button.visible and not wish_button.disabled:
+		actions.push_back(wish_button)
+	if crooked_button != null and crooked_button.visible and not crooked_button.disabled:
+		actions.push_back(crooked_button)
+
+	for button in [wish_button, crooked_button]:
+		if button != null:
+			button.focus_neighbor_left = NodePath("")
+			button.focus_neighbor_right = NodePath("")
+	reroll_button.focus_neighbor_left = _wish_reroll_left_neighbors[player_index]
+
+	for action_index in actions.size():
+		var action = actions[action_index]
+		if action_index > 0:
+			action.focus_neighbor_left = action.get_path_to(actions[action_index - 1])
+		var right_control = actions[action_index + 1] if action_index + 1 < actions.size() else reroll_button
+		action.focus_neighbor_right = action.get_path_to(right_control)
+	if not actions.empty():
+		reroll_button.focus_neighbor_left = reroll_button.get_path_to(actions.back())
+
+
 func _wish_refresh_action(player_index: int) -> void:
 	_crooked_refresh_action(player_index)
 	var button = _wish_action_buttons[player_index]
@@ -282,6 +314,7 @@ func _wish_refresh_action(player_index: int) -> void:
 		return
 	button.visible = RunData.wish_has_access(player_index)
 	if not button.visible:
+		_wish_update_action_focus(player_index)
 		return
 	var resource_count = RunData.wish_get_resource_count(player_index)
 	button.text = str(resource_count)
@@ -308,6 +341,7 @@ func _wish_refresh_action(player_index: int) -> void:
 				button.disabled = false
 		_:
 			button.hint_tooltip += "\n" + tr("WISH_QUEUE_MIGRATING")
+	_wish_update_action_focus(player_index)
 
 
 func _crooked_refresh_action(player_index: int) -> void:
@@ -353,6 +387,7 @@ func _wish_create_picker(player_index: int) -> void:
 	var popup = PopupPanel.new()
 	popup.name = "WishPickerP" + str(player_index + 1)
 	popup.rect_min_size = Vector2(940, 700)
+	popup.connect("popup_hide", self, "_on_wish_picker_closed", [player_index])
 	add_child(popup)
 
 	var margin = MarginContainer.new()
@@ -376,13 +411,16 @@ func _wish_create_picker(player_index: int) -> void:
 	column.add_child(cost_label)
 
 	var search = LineEdit.new()
+	search.name = "Search"
 	search.placeholder_text = tr("WISH_SEARCH")
 	search.connect("text_changed", self, "_on_wish_search_changed", [player_index])
+	search.connect("gui_input", self, "_on_wish_picker_gui_input", [player_index])
 	column.add_child(search)
 
 	var scroll = ScrollContainer.new()
 	scroll.rect_min_size = Vector2(0, 470)
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	scroll.follow_focus = true
 	column.add_child(scroll)
 
 	var grid = GridContainer.new()
@@ -393,14 +431,18 @@ func _wish_create_picker(player_index: int) -> void:
 	scroll.add_child(grid)
 
 	var confirm = Button.new()
+	confirm.name = "Confirm"
 	confirm.text = tr("WISH_CHOOSE")
 	confirm.disabled = true
 	confirm.connect("pressed", self, "_on_wish_confirm_pressed", [player_index])
+	confirm.connect("gui_input", self, "_on_wish_picker_gui_input", [player_index])
 	column.add_child(confirm)
 
 	var cancel = Button.new()
+	cancel.name = "Cancel"
 	cancel.text = tr("WISH_CANCEL")
-	cancel.connect("pressed", popup, "hide")
+	cancel.connect("pressed", self, "_on_wish_picker_cancel_pressed", [player_index])
+	cancel.connect("gui_input", self, "_on_wish_picker_gui_input", [player_index])
 	column.add_child(cancel)
 
 	_wish_picker_popups[player_index] = popup
@@ -408,6 +450,8 @@ func _wish_create_picker(player_index: int) -> void:
 	_wish_picker_lists[player_index] = grid
 	_wish_picker_cost_labels[player_index] = cost_label
 	_wish_picker_confirm_buttons[player_index] = confirm
+	_wish_picker_cancel_buttons[player_index] = cancel
+	_wish_picker_search_fields[player_index] = search
 
 
 func _on_wish_action_pressed(player_index: int) -> void:
@@ -424,12 +468,16 @@ func _on_wish_action_pressed(player_index: int) -> void:
 	var popup = _wish_picker_popups[player_index]
 	popup.set_meta("wish_source", "standard")
 	popup.set_meta("selected_item_id", "")
+	popup.set_meta("restore_focus_on_hide", true)
 	_wish_picker_titles[player_index].text = tr("WISH_PICKER_TITLE")
+	_wish_picker_search_fields[player_index].clear()
 	_wish_picker_confirm_buttons[player_index].disabled = true
 	_wish_picker_confirm_buttons[player_index].text = tr("WISH_CHOOSE")
 	_wish_picker_cost_labels[player_index].text = Text.text("WISH_WISH_FEE", [str(cost)]) + "\n" + Text.text("WISH_RESOURCE_COUNT", [str(RunData.wish_get_resource_count(player_index))])
+	_wish_picker_return_focus[player_index] = _wish_action_buttons[player_index]
 	_wish_rebuild_picker(player_index)
 	popup.popup_centered(Vector2(940, 700))
+	call_deferred("_wish_focus_first_card", player_index)
 
 
 func _on_crooked_action_pressed(player_index: int) -> void:
@@ -440,12 +488,16 @@ func _on_crooked_action_pressed(player_index: int) -> void:
 	var popup = _wish_picker_popups[player_index]
 	popup.set_meta("wish_source", "crooked")
 	popup.set_meta("selected_item_id", "")
+	popup.set_meta("restore_focus_on_hide", true)
 	_wish_picker_titles[player_index].text = tr("CROOKED_PICKER_TITLE")
+	_wish_picker_search_fields[player_index].clear()
 	_wish_picker_confirm_buttons[player_index].disabled = true
 	_wish_picker_confirm_buttons[player_index].text = tr("WISH_CHOOSE")
 	_wish_picker_cost_labels[player_index].text = Text.text("CROOKED_CHARGES", [str(RunData.crooked_get_charges(player_index))]) + "\n" + tr("CROOKED_CONSEQUENCE")
+	_wish_picker_return_focus[player_index] = _crooked_action_buttons[player_index]
 	_wish_rebuild_picker(player_index)
 	popup.popup_centered(Vector2(940, 700))
+	call_deferred("_wish_focus_first_card", player_index)
 
 
 func _wish_rebuild_picker(player_index: int) -> void:
@@ -460,9 +512,11 @@ func _wish_rebuild_picker(player_index: int) -> void:
 			candidates.push_back(item)
 	candidates.sort_custom(self, "_wish_sort_items")
 
-	for item in candidates:
+	for item_index in candidates.size():
+		var item = candidates[item_index]
 		var waves_until_unlock = _wish_waves_until_tier(item.tier, is_crooked, player_index)
 		var card = Button.new()
+		card.name = "WishCard" + str(item_index)
 		card.rect_min_size = Vector2(130, 140)
 		card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		card.rect_clip_content = true
@@ -473,6 +527,7 @@ func _wish_rebuild_picker(player_index: int) -> void:
 		_wish_apply_card_tier_style(card, item.tier)
 		if not card.disabled:
 			card.connect("pressed", self, "_on_wish_choice_pressed", [item.my_id, player_index])
+			card.connect("gui_input", self, "_on_wish_picker_gui_input", [player_index])
 
 		var card_content = VBoxContainer.new()
 		card.add_child(card_content)
@@ -524,6 +579,95 @@ func _wish_rebuild_picker(player_index: int) -> void:
 		unlock_label.add_color_override("font_color", Color(1.0, 1.0, 1.0, 0.9))
 		card_content.add_child(unlock_label)
 		list.add_child(card)
+	_wish_update_picker_focus(player_index)
+
+
+func _wish_update_picker_focus(player_index: int) -> void:
+	var search = _wish_picker_search_fields[player_index]
+	var confirm = _wish_picker_confirm_buttons[player_index]
+	var cancel = _wish_picker_cancel_buttons[player_index]
+	var cards = []
+	for child in _wish_picker_lists[player_index].get_children():
+		if child is Button and child.visible and not child.disabled:
+			cards.push_back(child)
+
+	for control in cards + [search, confirm, cancel]:
+		control.focus_neighbor_left = NodePath("")
+		control.focus_neighbor_top = NodePath("")
+		control.focus_neighbor_right = NodePath("")
+		control.focus_neighbor_bottom = NodePath("")
+
+	var bottom_control = confirm if not confirm.disabled else cancel
+	search.focus_neighbor_left = search.get_path_to(search)
+	search.focus_neighbor_top = search.get_path_to(cancel)
+	search.focus_neighbor_right = search.get_path_to(search)
+	search.focus_neighbor_bottom = search.get_path_to(cards[0] if not cards.empty() else bottom_control)
+	confirm.focus_neighbor_left = confirm.get_path_to(confirm)
+	confirm.focus_neighbor_top = confirm.get_path_to(cards.back() if not cards.empty() else search)
+	confirm.focus_neighbor_right = confirm.get_path_to(confirm)
+	confirm.focus_neighbor_bottom = confirm.get_path_to(cancel)
+	cancel.focus_neighbor_left = cancel.get_path_to(cancel)
+	cancel.focus_neighbor_top = cancel.get_path_to(confirm if not confirm.disabled else (cards.back() if not cards.empty() else search))
+	cancel.focus_neighbor_right = cancel.get_path_to(cancel)
+	cancel.focus_neighbor_bottom = cancel.get_path_to(search)
+
+	var columns = _wish_picker_lists[player_index].columns
+	for card_index in cards.size():
+		var card = cards[card_index]
+		var column = card_index % columns
+		var row_start = card_index - column
+		var row_end = min(row_start + columns, cards.size()) - 1
+		var left_card = cards[card_index - 1] if card_index > row_start else card
+		var right_card = cards[card_index + 1] if card_index < row_end else card
+		var up_control = cards[card_index - columns] if card_index >= columns else search
+		var down_index = card_index + columns
+		var down_control = cards[down_index] if down_index < cards.size() else bottom_control
+		card.focus_neighbor_left = card.get_path_to(left_card)
+		card.focus_neighbor_top = card.get_path_to(up_control)
+		card.focus_neighbor_right = card.get_path_to(right_card)
+		card.focus_neighbor_bottom = card.get_path_to(down_control)
+
+
+func _wish_focus_first_card(player_index: int) -> void:
+	var popup = _wish_picker_popups[player_index]
+	if popup == null or not popup.visible:
+		return
+	for child in _wish_picker_lists[player_index].get_children():
+		if child is Button and child.visible and not child.disabled:
+			child.grab_focus()
+			return
+	_wish_picker_cancel_buttons[player_index].grab_focus()
+
+
+func _on_wish_picker_gui_input(event: InputEvent, player_index: int) -> void:
+	if event.is_action_pressed("ui_cancel"):
+		get_tree().set_input_as_handled()
+		_on_wish_picker_cancel_pressed(player_index)
+
+
+func _on_wish_picker_cancel_pressed(player_index: int) -> void:
+	var popup = _wish_picker_popups[player_index]
+	if popup != null and popup.visible:
+		popup.hide()
+
+
+func _on_wish_picker_closed(player_index: int) -> void:
+	var popup = _wish_picker_popups[player_index]
+	if popup != null and popup.has_meta("restore_focus_on_hide") and not bool(popup.get_meta("restore_focus_on_hide")):
+		popup.set_meta("restore_focus_on_hide", true)
+		return
+	call_deferred("_wish_restore_shop_focus", player_index)
+
+
+func _wish_restore_shop_focus(player_index: int) -> void:
+	var popup = _wish_picker_popups[player_index]
+	if popup != null and popup.visible:
+		return
+	var return_control = _wish_picker_return_focus[player_index]
+	if return_control == null or not is_instance_valid(return_control) or not return_control.visible or return_control.disabled:
+		return_control = _get_reroll_button(player_index)
+	if return_control != null and is_instance_valid(return_control) and return_control.visible and not return_control.disabled:
+		return_control.grab_focus()
 
 
 func _wish_apply_card_tier_style(card: Button, tier: int) -> void:
@@ -559,6 +703,7 @@ func _on_wish_search_changed(search_text: String, player_index: int) -> void:
 	var normalized = search_text.strip_edges().to_lower()
 	for row in _wish_picker_lists[player_index].get_children():
 		row.visible = normalized.empty() or normalized in str(row.get_meta("search_text"))
+	_wish_update_picker_focus(player_index)
 
 
 func _on_wish_choice_pressed(item_id: String, player_index: int) -> void:
@@ -579,6 +724,7 @@ func _on_wish_choice_pressed(item_id: String, player_index: int) -> void:
 		_wish_picker_cost_labels[player_index].text = Text.text("WISH_ESTIMATED_ITEM_COST", [str(estimated_price)]) + "\n" + Text.text("CROOKED_CHARGES", [str(RunData.crooked_get_charges(player_index))]) + "\n" + tr("CROOKED_CONSEQUENCE")
 	else:
 		_wish_picker_cost_labels[player_index].text = Text.text("WISH_WISH_FEE", [str(RunData.wish_get_cost(player_index))]) + "\n" + Text.text("WISH_ESTIMATED_ITEM_COST", [str(estimated_price)]) + "\n" + Text.text("WISH_RESOURCE_COUNT", [str(RunData.wish_get_resource_count(player_index))])
+	_wish_update_picker_focus(player_index)
 
 
 func _on_wish_confirm_pressed(player_index: int) -> void:
@@ -637,20 +783,27 @@ func _on_crooked_confirm_pressed(player_index: int) -> void:
 	var queued = RunData.wish_queue_crooked_item(item_id, player_index)
 	assert(queued)
 	var calamity_id = RunData.crooked_queue_random_calamity()
+	popup.set_meta("restore_focus_on_hide", false)
 	popup.hide()
 	_get_gear_container(player_index).set_items_data(RunData.get_player_items(player_index))
 	_wish_refresh_action(player_index)
 	ProgressData.save_run_state(_shop_items, _reroll_count, _paid_reroll_count, _initial_free_rerolls, _free_rerolls, _item_steals)
-	_crooked_show_reveal(calamity_id)
+	_crooked_show_reveal(calamity_id, player_index)
 
 
-func _crooked_show_reveal(calamity_id: String) -> void:
+func _crooked_show_reveal(calamity_id: String, player_index: int) -> void:
 	var dialog = AcceptDialog.new()
 	dialog.window_title = tr("CROOKED_REVEAL_TITLE")
 	dialog.dialog_text = Text.text("CROOKED_REVEAL", [_crooked_get_calamity_name(calamity_id)]) + "\n\n" + _crooked_get_calamity_description(calamity_id)
-	dialog.connect("popup_hide", dialog, "queue_free")
+	dialog.connect("popup_hide", self, "_on_crooked_reveal_closed", [dialog, player_index])
 	add_child(dialog)
 	dialog.popup_centered(Vector2(620, 260))
+	dialog.get_ok().grab_focus()
+
+
+func _on_crooked_reveal_closed(dialog: AcceptDialog, player_index: int) -> void:
+	dialog.queue_free()
+	call_deferred("_wish_restore_shop_focus", player_index)
 
 
 func _crooked_get_calamity_name(calamity_id: String) -> String:

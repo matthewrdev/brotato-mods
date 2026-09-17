@@ -87,6 +87,21 @@ mod profile. Pass another folder as the first argument when needed.
   without reducing enemy materials or the number of consumable drops.
 - Crooked Wish tiers unlock on waves 1, 3, and 6.
 
+### Controller navigation
+
+- A controller can focus and activate the Magic Lamp and Monkey's Paw actions
+  from the shop header, including when both actions are present.
+- Opening either picker focuses its first available item. Directional input
+  stays within the search, item grid, Confirm, and Cancel controls, and moving
+  through the grid keeps the focused card visible.
+- Confirm queues the selected item. Controller Back/Cancel closes the picker
+  without spending resources, and both paths restore focus to the originating
+  shop action (or Reroll when that action becomes unavailable).
+- The Crooked Wish reveal dialog focuses its confirmation button and restores
+  usable shop focus after closing.
+- In local co-op, each player's Lamp/Paw action opens the matching picker and
+  returns focus to that player's shop header.
+
 ### Persistence
 
 - Save/resume preserves Wish resources, queued items, Paw charges, Calamities,
