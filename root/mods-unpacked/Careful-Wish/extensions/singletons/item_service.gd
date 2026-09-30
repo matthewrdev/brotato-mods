@@ -9,6 +9,7 @@ const COMPANY_WISH_ID = "item_wish_for_company"
 const WISH_IT_AWAY_ID = "item_wish_it_away"
 const WISH_YOU_WERE_HERE_ID = "item_wish_you_were_here"
 const WISH_FOR_TREASURE_ID = "item_wish_for_treasure"
+# Retain the original ID for saved inventories and unlocks.
 const WISH_FOR_QUALITY_ID = "item_wish_for_quality"
 const WISH_FOR_FORTUNE_ID = "item_wish_for_fortune"
 const WISH_FOR_KNOWLEDGE_ID = "item_wish_for_knowledge"
@@ -288,7 +289,14 @@ func _wish_install_content() -> void:
 		wish_for_quality_icon,
 		ItemParentData.Tier.LEGENDARY,
 		90,
-		[_wish_text_effect("WISH_FOR_QUALITY_EFFECT", 1)]
+		[
+			_wish_labeled_stat_effect(
+				"stat_harvesting",
+				"WISH_FOR_QUALITY_EFFECT",
+				80,
+				Effect.Sign.POSITIVE
+			)
+		]
 	)
 
 	wish_for_fortune_data = _wish_create_item(
@@ -495,7 +503,7 @@ func apply_item_effect_modifications(item: ItemParentData, player_index: int) ->
 	elif result.my_id == WISH_FOR_TREASURE_ID:
 		_wish_set_text_effect_value(result, "WISH_FOR_TREASURE_EFFECT", 2)
 	elif result.my_id == WISH_FOR_QUALITY_ID:
-		_wish_set_text_effect_value(result, "WISH_FOR_QUALITY_EFFECT", 2)
+		_wish_set_stat_effect_value(result, "stat_harvesting", 120)
 	elif result.my_id == WISH_FOR_FORTUNE_ID:
 		_wish_set_stat_effect_value(result, "stat_luck", 40)
 	elif result.my_id == WISH_FOR_KNOWLEDGE_ID:

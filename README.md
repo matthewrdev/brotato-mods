@@ -11,7 +11,7 @@ paying the price for it.
   Calamity.
 - **Monkey's Paw:** Shaman's unique Legendary item. It begins with three
   extended fingers, and each Crooked Wish curls one.
-- **Seven Wish items:** ask for company, bans, an Elite, crates, item quality,
+- **Seven Wish items:** ask for company, bans, an Elite, crates, Harvesting,
   Luck, or permanent XP Gain. Every reward has a price.
 
 Wished items appear in normal shop slots on the next reroll. They retain their
@@ -53,9 +53,9 @@ than Unique, and multiple copies stack their rewards and consequences.
   guaranteed crate. A cursed copy guarantees a second crate.
 - **Wish for Treasure** (Rare): the next wave drops a guaranteed crate while
   enemies deal +10% Damage. A cursed copy guarantees two crates.
-- **Wish for Quality** (Legendary): an unlocked slot in the shop after the next
-  wave is at least Rare, while that wave's enemies have +15% Health. A cursed
-  copy upgrades two slots.
+- **Wish for Harvest** (Legendary): permanently gain +80 Harvesting, while
+  enemies have +15% Health during the next wave. A cursed copy permanently
+  grants +120 Harvesting.
 - **Wish for Fortune** (Rare): permanently gain +25 Luck, while enemies deal
   +10% Damage during the next wave. A cursed copy permanently grants +40 Luck.
 - **Wish for Knowledge** (Uncommon): permanently gain +30% XP Gain while the

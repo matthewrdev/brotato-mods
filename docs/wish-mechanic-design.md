@@ -13,9 +13,9 @@
 - Magic Lamp is never wishable. It is repeatable across a run, limited to one
   purchase per shop visit, and cannot be locked or banned.
 - The seven unlocked-by-default Wish items can be rolled, looted, or selected
-  through Wish once their tiers are available. Five are one-wave triggers and
-  are consumed when the promised wave begins; Wish for Fortune and Wish for
-  Knowledge are permanent.
+  through Wish once their tiers are available. Four are one-wave triggers and
+  are consumed when the promised wave begins; Wish for Harvest, Wish for
+  Fortune, and Wish for Knowledge are permanent.
 - The six additional Wish items are repeatable (`max_nb = -1`), so copies may
   be held together and their rewards and consequences stack.
 - Cursed Wish items improve the reward while retaining the same negative
@@ -34,7 +34,6 @@ Per-player Wish state stores:
     "phase": WISH_AVAILABLE,
     "wish_count": 0,
     "pending_item_ids": [],
-    "quality_slots": 0,
     "discount_queue": [],
     "layout_version": 3,
     "resource_version": 1,
@@ -52,8 +51,7 @@ remain distinct, allowing Wish You Were Here to stack with a Crooked Hunter.
 ## Shop hooks
 
 - `BaseShop.fill_shop_items`: preserve locked cards, run vanilla generation,
-  then replace reserved unlocked results with queued items. On a new shop,
-  apply pending Wish for Quality upgrades only to unlocked normal slots.
+  then replace reserved unlocked results with queued items.
 - `BaseShop._on_RerollButton_pressed`: refresh Wish UI after native reroll.
 - `BaseShop.on_shop_item_bought`: keep native purchase handling, then refresh
   Wish state, Lamp limits, and cursed-Lamp prices.
@@ -89,9 +87,10 @@ The current local target is Brotato `1.1.12.0.beta-3` with ModLoader `6.3.0`.
   during the same wave.
 - **Wish for Treasure (Rare):** guarantee a crate drop during the next wave,
   while enemies deal +10% Damage. A cursed copy guarantees 2 crates.
-- **Wish for Quality (Legendary):** guarantee that one unlocked item in the
-  shop after next wave is at least Rare; the
-  next wave gives enemies +15% Health. A cursed copy guarantees 2 items.
+- **Wish for Harvest (Legendary):** permanently gain +80 Harvesting; the next
+  wave gives enemies +15% Health. A cursed copy permanently grants +120
+  Harvesting. The original `item_wish_for_quality` ID is retained for saved
+  inventories and unlocks; shop quality rewards are no longer queued or applied.
 - **Wish for Fortune (Rare):** permanently gain +25 Luck while enemies deal
   +10% Damage during the next wave. A cursed copy permanently grants +40 Luck.
 - **Wish for Knowledge (Uncommon):** permanently gain +30% XP Gain while the

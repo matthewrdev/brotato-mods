@@ -111,7 +111,6 @@ func add_item(item: ItemData, player_index: int, is_selection: bool = false) -> 
 		wish_queue_guaranteed_crates(2 if item.is_cursed else 1)
 		wish_queue_enemy_damage_bonus(WISH_FOR_TREASURE_ENEMY_DAMAGE_BONUS)
 	elif item != null and item.my_id == WISH_FOR_QUALITY_ID:
-		wish_queue_quality_slots(2 if item.is_cursed else 1, player_index)
 		wish_queue_enemy_health_bonus(WISH_FOR_QUALITY_ENEMY_HEALTH_BONUS)
 	elif item != null and item.my_id == WISH_FOR_FORTUNE_ID:
 		wish_queue_enemy_damage_bonus(WISH_FOR_FORTUNE_ENEMY_DAMAGE_BONUS)
@@ -133,8 +132,7 @@ func _wish_consume_wave_trigger_items() -> void:
 		COMPANY_WISH_ID,
 		WISH_IT_AWAY_ID,
 		WISH_YOU_WERE_HERE_ID,
-		WISH_FOR_TREASURE_ID,
-		WISH_FOR_QUALITY_ID
+		WISH_FOR_TREASURE_ID
 	]
 	for player_index in get_player_count():
 		for item_id in trigger_ids:
@@ -345,22 +343,6 @@ func wish_queue_guaranteed_crates(count: int) -> void:
 	crooked_state.calamity_target_wave = current_wave + 1
 
 
-func wish_queue_quality_slots(count: int, player_index: int) -> void:
-	if player_index < 0 or player_index >= get_player_count():
-		return
-	var state = wish_get_player_state(player_index)
-	state.quality_slots = int(state.quality_slots) + max(0, count)
-
-
-func wish_take_quality_slots(player_index: int) -> int:
-	if player_index < 0 or player_index >= get_player_count():
-		return 0
-	var state = wish_get_player_state(player_index)
-	var count = max(0, int(state.quality_slots)) as int
-	state.quality_slots = 0
-	return count
-
-
 func crooked_get_queued_calamities() -> Array:
 	return crooked_state.queued_calamities.duplicate()
 
@@ -469,7 +451,6 @@ func _wish_new_player() -> Dictionary:
 		"lamp_bought_this_shop": false,
 		"paw_charges": 0,
 		"paw_uses": 0,
-		"quality_slots": 0,
 		"discount_queue": [],
 		"delivery_result": "",
 		"layout_version": WISH_LAYOUT_VERSION,
@@ -497,7 +478,6 @@ func _wish_sanitize_player(saved) -> Dictionary:
 	result.lamp_bought_this_shop = bool(saved.get("lamp_bought_this_shop", false))
 	result.paw_charges = clamp(int(saved.get("paw_charges", 0)), 0, PAW_MAX_CHARGES) as int
 	result.paw_uses = max(0, int(saved.get("paw_uses", 0)))
-	result.quality_slots = max(0, int(saved.get("quality_slots", 0)))
 	if not result.pending_item_ids.empty():
 		result.phase = WISH_QUEUED_CURRENT_SHOP
 	else:
