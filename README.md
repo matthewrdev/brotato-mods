@@ -11,8 +11,8 @@ paying the price for it.
   Calamity.
 - **Monkey's Paw:** Shaman's unique Legendary item. It begins with three
   extended fingers, and each Crooked Wish curls one.
-- **Seven Wish items:** ask for company, bans, an Elite, crates, Harvesting,
-  Luck, or permanent XP Gain. Every reward has a price.
+- **Seven Wish items:** ask for company, bans, an Elite, Harvesting growth,
+  Harvesting, inventory corruption, or permanent XP Gain.
 
 Wished items appear in normal shop slots on the next reroll. They retain their
 normal price and ordinary buy, lock, and reroll behaviour. Multiple Wishes can
@@ -40,10 +40,10 @@ wave and survive save/resume.
 
 ## Wish items
 
-Most Wish items are consumed when their promised wave begins, allowing them to
-appear again later in the run. Cursed copies improve the reward without making
-the listed price worse. The six additional Wish items are repeatable rather
-than Unique, and multiple copies stack their rewards and consequences.
+The three wave-triggered Wish items are consumed when their promised wave begins,
+allowing them to appear again later in the run. The other four stay in your
+inventory. The six additional Wish items are repeatable rather than Unique, and
+multiple copies stack their rewards and consequences.
 
 - **Wish for Friends** (Rare): the next wave is a Horde. A cursed copy grants
   +10% XP Gain during that Horde.
@@ -51,13 +51,14 @@ than Unique, and multiple copies stack their rewards and consequences.
   Health. A cursed copy grants two Ban tokens.
 - **Wish You Were Here** (Rare): an additional Elite appears next wave with a
   guaranteed crate. A cursed copy guarantees a second crate.
-- **Wish for Treasure** (Rare): the next wave drops a guaranteed crate while
-  enemies deal +10% Damage. A cursed copy guarantees two crates.
+- **Wish for Growth** (Rare): gain an additional +0.3 percentage points of
+  Harvesting growth each wave. A cursed copy grants +0.6 percentage points.
 - **Wish for Harvest** (Legendary): permanently gain +80 Harvesting, while
   enemies have +15% Health during the next wave. A cursed copy permanently
   grants +120 Harvesting.
-- **Wish for Fortune** (Rare): permanently gain +25 Luck, while enemies deal
-  +10% Damage during the next wave. A cursed copy permanently grants +40 Luck.
+- **Wish for Corruption** (Rare): curse one random uncursed item or weapon in
+  your inventory when bought. A cursed copy curses two distinct eligible items
+  or weapons, if available.
 - **Wish for Knowledge** (Uncommon): permanently gain +30% XP Gain while the
   total number of enemies permanently increases by 2%. A cursed copy grants
   +40% XP Gain with the same consequence.

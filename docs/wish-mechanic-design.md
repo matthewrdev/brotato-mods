@@ -13,9 +13,9 @@
 - Magic Lamp is never wishable. It is repeatable across a run, limited to one
   purchase per shop visit, and cannot be locked or banned.
 - The seven unlocked-by-default Wish items can be rolled, looted, or selected
-  through Wish once their tiers are available. Four are one-wave triggers and
-  are consumed when the promised wave begins; Wish for Harvest, Wish for
-  Fortune, and Wish for Knowledge are permanent.
+  through Wish once their tiers are available. Three are one-wave triggers and
+  are consumed when the promised wave begins; Wish for Growth, Wish for Harvest,
+  Wish for Corruption, and Wish for Knowledge remain in the inventory.
 - The six additional Wish items are repeatable (`max_nb = -1`), so copies may
   be held together and their rewards and consequences stack.
 - Cursed Wish items improve the reward while retaining the same negative
@@ -85,14 +85,22 @@ The current local target is Brotato `1.1.12.0.beta-3` with ModLoader `6.3.0`.
 - **Wish You Were Here (Rare):** an additional Elite appears next wave and
   drops a guaranteed crate. A cursed copy guarantees a second normal crate
   during the same wave.
-- **Wish for Treasure (Rare):** guarantee a crate drop during the next wave,
-  while enemies deal +10% Damage. A cursed copy guarantees 2 crates.
+- **Wish for Growth (Rare):** add 0.3 percentage points to the native
+  end-of-wave Harvesting growth rate while held, or 0.6 when cursed. The
+  original `item_wish_for_treasure` ID is retained for saved inventories and
+  unlocks. The growth effect stores tenths of a percentage point as an integer
+  because Brotato's native `Effect.value` is integer-only.
 - **Wish for Harvest (Legendary):** permanently gain +80 Harvesting; the next
   wave gives enemies +15% Health. A cursed copy permanently grants +120
   Harvesting. The original `item_wish_for_quality` ID is retained for saved
   inventories and unlocks; shop quality rewards are no longer queued or applied.
-- **Wish for Fortune (Rare):** permanently gain +25 Luck while enemies deal
-  +10% Damage during the next wave. A cursed copy permanently grants +40 Luck.
+- **Wish for Corruption (Rare):** on purchase, select one random uncursed item
+  or weapon from the buyer's inventory and transform it using Abyssal Terrors'
+  native curse function. A cursed copy selects two distinct eligible inventory
+  entries, if available. Wish for Corruption itself and internal Wish resources
+  are excluded. Replacing an owned Wish item does not repeat its purchase effect.
+  The original `item_wish_for_fortune` ID is retained for saved inventories and
+  unlocks; the old Luck and next-wave enemy Damage effects are removed.
 - **Wish for Knowledge (Uncommon):** permanently gain +30% XP Gain while the
   total number of enemies permanently increases by 2%. A cursed copy grants
   +40% XP Gain with the same consequence.

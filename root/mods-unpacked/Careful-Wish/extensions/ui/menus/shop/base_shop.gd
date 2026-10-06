@@ -1,6 +1,7 @@
 extends "res://ui/menus/shop/base_shop.gd"
 
 const LAMP_ID = "item_magic_lamp"
+const CORRUPTION_ID = "item_wish_for_fortune" # Saved item ID retained from Wish for Fortune.
 const DJINN_ID = "character_djinn"
 const PLACEHOLDER_ID = "item_wish_empty_slot"
 const WISH_CARD_FONT = preload("res://resources/fonts/actual/base/font_very_smallest_text.tres")
@@ -92,6 +93,7 @@ func _on_RerollButton_pressed(player_index: int) -> void:
 func on_shop_item_bought(shop_item: ShopItem, player_index: int) -> void:
 	var has_wish_shop = RunData.wish_has_access(player_index)
 	var bought_lamp = shop_item != null and shop_item.item_data != null and shop_item.item_data.my_id == LAMP_ID
+	var bought_corruption = shop_item != null and shop_item.item_data != null and shop_item.item_data.my_id == CORRUPTION_ID
 	if has_wish_shop:
 		# BaseShop removes the first entry with the same id. Put the exact
 		# resource shown on the clicked card first so cursed/duplicate variants
@@ -107,7 +109,33 @@ func on_shop_item_bought(shop_item: ShopItem, player_index: int) -> void:
 		RunData.wish_mark_lamp_bought_this_shop(player_index)
 		_get_gear_container(player_index).set_items_data(RunData.get_player_items(player_index))
 		ProgressData.save_run_state(_shop_items, _reroll_count, _paid_reroll_count, _initial_free_rerolls, _free_rerolls, _item_steals)
+	if bought_corruption:
+		var cursed_names = RunData.wish_corruption_result.get(player_index, [])
+		RunData.wish_corruption_result.erase(player_index)
+		var gear = _get_gear_container(player_index)
+		gear.set_items_data(RunData.get_player_items(player_index))
+		gear.set_weapons_data(RunData.get_player_weapons(player_index))
+		_update_stats(player_index)
+		ProgressData.save_run_state(_shop_items, _reroll_count, _paid_reroll_count, _initial_free_rerolls, _free_rerolls, _item_steals)
+		_wish_show_corruption_result(cursed_names, player_index)
 	_wish_refresh_action(player_index)
+
+
+func _wish_show_corruption_result(cursed_names: Array, player_index: int) -> void:
+	var dialog = AcceptDialog.new()
+	dialog.window_title = tr("ITEM_WISH_FOR_CORRUPTION")
+	dialog.dialog_text = tr("WISH_FOR_CORRUPTION_NONE") if cursed_names.empty() else tr("WISH_FOR_CORRUPTION_RESULT")
+	for item_name in cursed_names:
+		dialog.dialog_text += "\n" + str(item_name)
+	dialog.connect("popup_hide", self, "_on_wish_corruption_result_closed", [dialog, player_index])
+	add_child(dialog)
+	dialog.popup_centered(Vector2(560, 180))
+	dialog.get_ok().grab_focus()
+
+
+func _on_wish_corruption_result_closed(dialog: AcceptDialog, player_index: int) -> void:
+	dialog.queue_free()
+	call_deferred("_wish_restore_shop_focus", player_index)
 
 
 func buy_item(item_data: ItemData, player_index: int) -> void:

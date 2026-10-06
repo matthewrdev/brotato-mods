@@ -43,8 +43,8 @@ mod profile. Pass another folder as the first argument when needed.
 
 ### Wish items
 
-- Wish It Away, Wish You Were Here, Wish for Treasure, Wish for Harvest, Wish
-  for Fortune, and Wish for Knowledge do not display the Unique label. Multiple
+- Wish It Away, Wish You Were Here, Wish for Growth, Wish for Harvest, Wish
+  for Corruption, and Wish for Knowledge do not display the Unique label. Multiple
   copies can be bought and their rewards and consequences stack.
 - Wish It Away grants 1 Ban token immediately (2 when cursed), enables banning
   if the run had no starting bans, and gives enemies +10% Health for the next
@@ -53,21 +53,29 @@ mod profile. Pass another folder as the first argument when needed.
   cursed copy also guarantees a crate from another enemy during that wave.
   Multiple Hunter effects queue multiple Elites rather than collapsing into
   one.
-- Wish for Treasure guarantees 1 normal crate drop during the next wave (2
-  when cursed) and gives enemies +10% Damage for that wave only.
+- Wish for Growth remains in the inventory and increases the native Harvesting
+  growth rate by 0.3 percentage points per wave (0.6 when cursed). Multiple
+  copies stack, save/resume retains the bonus, and removing a copy reverses it.
+  It does not queue crates or extra enemy Damage.
 - Wish for Harvest appears as a red Legendary item and permanently grants its
   owner +80 Harvesting (+120 when cursed). It remains in the inventory, stacks
   across copies, and survives save/resume. Enemies have +15% Health during the
   next wave only, and shop item quality follows the normal rules.
-- Wish for Fortune permanently grants its owner +25 Luck (+40 when cursed),
-  remains in the inventory, and gives enemies +10% Damage for the next wave
-  only.
+- Wish for Corruption appears as a purple Rare item. Buying it curses one
+  random uncursed item or weapon in the buyer's inventory; a cursed copy curses
+  two distinct eligible entries. Already cursed gear, the Corruption item
+  itself, and internal Wish resources are skipped. If fewer targets exist, only
+  available targets are cursed. Co-op purchases affect only the buyer.
+- Cursing another Wish item does not replay that item's one-time purchase
+  reward. Saving and resuming keeps the cursed inventory without retriggering
+  Corruption. Legacy Fortune copies retain their saved item ID but display the
+  new name and effect rather than Luck.
 - Wish for Knowledge permanently grants +30% XP Gain (+40% when cursed) and
   permanently increases the total number of enemies by 2%. It remains in the
   inventory.
-- The four wave-triggered Wish items are consumed when their promised wave
+- The three wave-triggered Wish items are consumed when their promised wave
   begins and can roll again in a later shop. Their queued effects survive
-  save/resume and stack their enemy Health or Damage prices where applicable.
+  save/resume and stack their enemy Health prices where applicable.
 
 ### Shaman and Crooked Wish
 

@@ -8,10 +8,10 @@ const PAW_ID = "item_monkeys_paw"
 const COMPANY_WISH_ID = "item_wish_for_company"
 const WISH_IT_AWAY_ID = "item_wish_it_away"
 const WISH_YOU_WERE_HERE_ID = "item_wish_you_were_here"
-const WISH_FOR_TREASURE_ID = "item_wish_for_treasure"
+const WISH_FOR_GROWTH_ID = "item_wish_for_treasure" # Keep saved item IDs compatible.
 # Retain the original ID for saved inventories and unlocks.
 const WISH_FOR_QUALITY_ID = "item_wish_for_quality"
-const WISH_FOR_FORTUNE_ID = "item_wish_for_fortune"
+const WISH_FOR_CORRUPTION_ID = "item_wish_for_fortune" # Keep saved item IDs compatible.
 const WISH_FOR_KNOWLEDGE_ID = "item_wish_for_knowledge"
 const WISH_RESOURCE_ID = "item_wish_resource"
 const PLACEHOLDER_ID = "item_wish_empty_slot"
@@ -49,9 +49,9 @@ var wish_paw_data = null
 var wish_for_company_data = null
 var wish_it_away_data = null
 var wish_you_were_here_data = null
-var wish_for_treasure_data = null
+var wish_for_growth_data = null
 var wish_for_quality_data = null
-var wish_for_fortune_data = null
+var wish_for_corruption_data = null
 var wish_for_knowledge_data = null
 var wish_resource_data = null
 var wish_placeholder_data = null
@@ -80,17 +80,17 @@ func _wish_unlock_content_after_profile_load() -> void:
 		wish_for_company_data = _wish_find_by_id(items, COMPANY_WISH_ID)
 	wish_it_away_data = _wish_find_by_id(items, WISH_IT_AWAY_ID)
 	wish_you_were_here_data = _wish_find_by_id(items, WISH_YOU_WERE_HERE_ID)
-	wish_for_treasure_data = _wish_find_by_id(items, WISH_FOR_TREASURE_ID)
+	wish_for_growth_data = _wish_find_by_id(items, WISH_FOR_GROWTH_ID)
 	wish_for_quality_data = _wish_find_by_id(items, WISH_FOR_QUALITY_ID)
-	wish_for_fortune_data = _wish_find_by_id(items, WISH_FOR_FORTUNE_ID)
+	wish_for_corruption_data = _wish_find_by_id(items, WISH_FOR_CORRUPTION_ID)
 	wish_for_knowledge_data = _wish_find_by_id(items, WISH_FOR_KNOWLEDGE_ID)
 	var default_items = [
 		wish_for_company_data,
 		wish_it_away_data,
 		wish_you_were_here_data,
-		wish_for_treasure_data,
+		wish_for_growth_data,
 		wish_for_quality_data,
-		wish_for_fortune_data,
+		wish_for_corruption_data,
 		wish_for_knowledge_data
 	]
 	if wish_djinn_data == null or wish_shaman_data == null or default_items.has(null):
@@ -171,6 +171,7 @@ func _wish_sync_character_difficulty_unlocks(character_id: String) -> bool:
 
 
 func _wish_install_content() -> void:
+	_wish_register_growth_effect()
 	if _wish_find_by_id(characters, DJINN_ID) != null and _wish_find_by_id(characters, SHAMAN_ID) != null:
 		wish_djinn_data = _wish_find_by_id(characters, DJINN_ID)
 		wish_shaman_data = _wish_find_by_id(characters, SHAMAN_ID)
@@ -179,9 +180,9 @@ func _wish_install_content() -> void:
 		wish_for_company_data = _wish_find_by_id(items, COMPANY_WISH_ID)
 		wish_it_away_data = _wish_find_by_id(items, WISH_IT_AWAY_ID)
 		wish_you_were_here_data = _wish_find_by_id(items, WISH_YOU_WERE_HERE_ID)
-		wish_for_treasure_data = _wish_find_by_id(items, WISH_FOR_TREASURE_ID)
+		wish_for_growth_data = _wish_find_by_id(items, WISH_FOR_GROWTH_ID)
 		wish_for_quality_data = _wish_find_by_id(items, WISH_FOR_QUALITY_ID)
-		wish_for_fortune_data = _wish_find_by_id(items, WISH_FOR_FORTUNE_ID)
+		wish_for_corruption_data = _wish_find_by_id(items, WISH_FOR_CORRUPTION_ID)
 		wish_for_knowledge_data = _wish_find_by_id(items, WISH_FOR_KNOWLEDGE_ID)
 		wish_resource_data = _wish_find_by_id(items, WISH_RESOURCE_ID)
 		wish_placeholder_data = _wish_find_by_id(items, PLACEHOLDER_ID)
@@ -198,9 +199,9 @@ func _wish_install_content() -> void:
 	var wish_for_friends_icon = _wish_load_png(MOD_DIR + "assets/wishmod_wish_for_friends.png")
 	var wish_it_away_icon = _wish_load_png(MOD_DIR + "assets/wishmod_wish_it_away.png")
 	var wish_you_were_here_icon = _wish_load_png(MOD_DIR + "assets/wishmod_wish_you_were_here.png")
-	var wish_for_treasure_icon = _wish_load_png(MOD_DIR + "assets/wishmod_wish_for_treasure.png")
+	var wish_for_growth_icon = _wish_load_png(MOD_DIR + "assets/wishmod_wish_for_growth.png")
 	var wish_for_quality_icon = _wish_load_png(MOD_DIR + "assets/wishmod_wish_for_quality.png")
-	var wish_for_fortune_icon = _wish_load_png(MOD_DIR + "assets/wishmod_wish_for_fortune.png")
+	var wish_for_corruption_icon = _wish_load_png(MOD_DIR + "assets/wishmod_wish_for_corruption.png")
 	var wish_for_knowledge_icon = _wish_load_png(MOD_DIR + "assets/wishmod_wish_for_knowledge.png")
 	for paw_charges in [0, 1, 2, 3]:
 		wish_paw_icons.push_back(_wish_load_png(MOD_DIR + "assets/wishmod_monkeys_paw_" + str(paw_charges) + ".png"))
@@ -274,13 +275,13 @@ func _wish_install_content() -> void:
 		[_wish_text_effect("WISH_YOU_WERE_HERE_EFFECT", 1)]
 	)
 
-	wish_for_treasure_data = _wish_create_item(
-		WISH_FOR_TREASURE_ID,
-		"ITEM_WISH_FOR_TREASURE",
-		wish_for_treasure_icon,
+	wish_for_growth_data = _wish_create_item(
+		WISH_FOR_GROWTH_ID,
+		"ITEM_WISH_FOR_GROWTH",
+		wish_for_growth_icon,
 		ItemParentData.Tier.RARE,
 		50,
-		[_wish_text_effect("WISH_FOR_TREASURE_EFFECT", 1)]
+		[_wish_growth_effect()]
 	)
 
 	wish_for_quality_data = _wish_create_item(
@@ -299,20 +300,13 @@ func _wish_install_content() -> void:
 		]
 	)
 
-	wish_for_fortune_data = _wish_create_item(
-		WISH_FOR_FORTUNE_ID,
-		"ITEM_WISH_FOR_FORTUNE",
-		wish_for_fortune_icon,
+	wish_for_corruption_data = _wish_create_item(
+		WISH_FOR_CORRUPTION_ID,
+		"ITEM_WISH_FOR_CORRUPTION",
+		wish_for_corruption_icon,
 		ItemParentData.Tier.RARE,
 		50,
-		[
-			_wish_labeled_stat_effect(
-				"stat_luck",
-				"WISH_FOR_FORTUNE_EFFECT",
-				25,
-				Effect.Sign.POSITIVE
-			)
-		]
+		[_wish_text_effect("WISH_FOR_CORRUPTION_EFFECT", 1)]
 	)
 
 	wish_for_knowledge_data = _wish_create_item(
@@ -481,6 +475,17 @@ func _wish_install_content() -> void:
 
 func apply_item_effect_modifications(item: ItemParentData, player_index: int) -> ItemParentData:
 	var result = .apply_item_effect_modifications(item, player_index)
+	if result != null and result.my_id == WISH_FOR_GROWTH_ID:
+		# Older saves can still contain Treasure's text-only effect.
+		result.name = "ITEM_WISH_FOR_GROWTH"
+		if result.effects.empty() or result.effects[0].get_id() != "wish_harvesting_growth_effect":
+			result.effects = [_wish_growth_effect()]
+		_wish_set_stat_effect_value(result, "harvesting_growth", 6 if result.is_cursed else 3)
+	if result != null and result.my_id == WISH_FOR_CORRUPTION_ID:
+		# Older saves can still contain Fortune's Luck effect.
+		result.name = "ITEM_WISH_FOR_CORRUPTION"
+		var corruption_text = "WISH_FOR_CORRUPTION_CURSED_EFFECT" if result.is_cursed else "WISH_FOR_CORRUPTION_EFFECT"
+		result.effects = [_wish_text_effect(corruption_text, 2 if result.is_cursed else 1)]
 	if result == null or not result.is_cursed:
 		return result
 
@@ -500,12 +505,8 @@ func apply_item_effect_modifications(item: ItemParentData, player_index: int) ->
 		_wish_set_text_effect_value(result, "WISH_IT_AWAY_EFFECT", 2)
 	elif result.my_id == WISH_YOU_WERE_HERE_ID:
 		_wish_set_text_effect_value(result, "WISH_YOU_WERE_HERE_EFFECT", 2)
-	elif result.my_id == WISH_FOR_TREASURE_ID:
-		_wish_set_text_effect_value(result, "WISH_FOR_TREASURE_EFFECT", 2)
 	elif result.my_id == WISH_FOR_QUALITY_ID:
 		_wish_set_stat_effect_value(result, "stat_harvesting", 120)
-	elif result.my_id == WISH_FOR_FORTUNE_ID:
-		_wish_set_stat_effect_value(result, "stat_luck", 40)
 	elif result.my_id == WISH_FOR_KNOWLEDGE_ID:
 		_wish_set_stat_effect_value(result, "xp_gain", 40)
 		_wish_set_stat_effect_value(result, "number_of_enemies", 2)
@@ -665,6 +666,18 @@ func _wish_text_effect(text_key: String, value: int) -> Effect:
 	effect.value = value
 	effect.effect_sign = Effect.Sign.NEUTRAL
 	return effect
+
+
+func _wish_growth_effect() -> Effect:
+	var effect_script = load(MOD_DIR + "effects/harvesting_growth_effect.gd")
+	return effect_script.new()
+
+
+func _wish_register_growth_effect() -> void:
+	for registered_effect in effects:
+		if registered_effect.get_id() == "wish_harvesting_growth_effect":
+			return
+	effects.push_back(load(MOD_DIR + "effects/harvesting_growth_effect.gd"))
 
 
 func _wish_stat_effect(stat_key: String, value: int) -> Effect:
