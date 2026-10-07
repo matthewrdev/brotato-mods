@@ -3,22 +3,30 @@
 Use these values in Brotato's Steam Workshop uploader:
 
 - Title: `Wish`
-- Mod ZIP: `dist/Wish-<version>.zip`
+- Mod ZIP: `dist/Wish-0.1.1.zip`
 - Preview image: `workshop/preview.png`
 - Tags: `Characters`, `Items`, `New Mechanics`
-- Workshop ID: leave blank for the first upload; reuse the generated ID for
-  every update
+- Workshop ID: `3790161580` for updates. Do not use the local test folder's ID.
 
 The internal `Careful-Wish` directory is the ModLoader namespace-qualified ID.
 It is not the public mod name and must remain consistent with `namespace` and
 `name` in `manifest.json`.
 
-Before publishing:
+For this update:
 
-1. Run `./scripts/package_mod.sh`.
-2. Complete the smoke test in `TESTING.md` on the intended Brotato branch.
-3. Upload the ZIP and `preview.png` through Steam's `modding` branch.
-4. Paste `description.bbcode` into the Workshop description.
-5. Keep the item hidden until a clean subscription-only test passes.
-6. Mark Abyssal Terrors as required unless the release has been tested without
-   the DLC.
+1. Fully quit Brotato, then test `dist/Wish-0.1.1.zip` using `TESTING.md` on
+   the intended Brotato branch. In particular, buy Wish for Growth and Wish
+   for Corruption and check their effects after saving and resuming.
+2. In Steam, open Brotato's Properties > Betas and select the `modding` branch.
+   Launch the Godot Workshop Utility **through Steam**.
+3. Select `dist/Wish-0.1.1.zip` as the mod file and `workshop/preview.png` as
+   the preview image. Enter Workshop item ID `3790161580` to update Wish;
+   leaving that field blank creates a separate item.
+4. Paste `workshop/description.bbcode` into the Workshop description and use
+   `workshop/release-notes-0.1.1.md` for the update notes.
+5. For a first upload, leave the new item hidden while testing it. For an
+   existing public item, complete the local smoke test before uploading because
+   the update will be public immediately. For a subscription-only check, first
+   disable the local `Wish-local.zip` test copy so ModLoader loads one Wish copy.
+   Mark Abyssal Terrors as required unless the release has been tested without
+   it.

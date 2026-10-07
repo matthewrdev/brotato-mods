@@ -1,7 +1,7 @@
 {
 	"name": "Wish",
 	"namespace": "Careful",
-	"version_number": "0.1.0",
+	"version_number": "0.1.1",
 	"description": "Be careful what you wish for. Adds Djinn and Shaman with Wish and Crooked Wish shop mechanics, plus wish-themed items.",
 	"website_url": "https://github.com/matthewrdev/brotato-mods",
 	"dependencies": [],

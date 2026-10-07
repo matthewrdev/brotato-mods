@@ -66,6 +66,9 @@ mod profile. Pass another folder as the first argument when needed.
   two distinct eligible entries. Already cursed gear, the Corruption item
   itself, and internal Wish resources are skipped. If fewer targets exist, only
   available targets are cursed. Co-op purchases affect only the buyer.
+- After buying Wish for Corruption, the shop refreshes both inventory lists and
+  stats, and a dialog names each cursed item or weapon. If none can be cursed,
+  the dialog says so. Closing it restores usable shop focus.
 - Cursing another Wish item does not replay that item's one-time purchase
   reward. Saving and resuming keeps the cursed inventory without retriggering
   Corruption. Legacy Fortune copies retain their saved item ID but display the

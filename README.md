@@ -95,7 +95,7 @@ test.
 The release-ready Workshop description, preview image, and publishing checklist
 live in [`workshop`](workshop). Build the archive first, then use Brotato's
 included Godot Workshop Utility to create or update the Workshop item with the
-contents of `root/mods-unpacked/Careful-Wish`.
+versioned ZIP in `dist`.
 
 ## Artwork and contributions
 
