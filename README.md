@@ -86,7 +86,7 @@ Monkey's Paw becomes available to other characters after winning as Shaman.
 The build produces `dist/Wish-<version>.zip`, with the version read from the
 manifest. Fully restart Brotato after installing the mod locally.
 
-The current target is Brotato `1.1.12.0.beta-3` with ModLoader `6.3.0`, and
+The current target is Brotato `1.2.0.1` with ModLoader `6.3.0`, and
 Abyssal Terrors is required. See [`TESTING.md`](TESTING.md) for the full smoke
 test.
 

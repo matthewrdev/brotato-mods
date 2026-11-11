@@ -119,7 +119,7 @@ func add_item(item: ItemData, player_index: int, is_selection: bool = false) -> 
 
 func _wish_curse_inventory(player_index: int, count: int) -> Array:
 	var cursed_names = []
-	var dlc = ProgressData.get_dlc_data("abyssal_terrors")
+	var dlc = ItemService.get_dlc_data_by_id("abyssal_terrors")
 	if dlc == null:
 		ModLoaderLog.warning("Wish for Corruption could not find Abyssal Terrors", "Careful-Wish")
 		return cursed_names

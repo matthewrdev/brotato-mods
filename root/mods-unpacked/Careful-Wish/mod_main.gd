@@ -12,11 +12,13 @@ func _init() -> void:
 	ModLoaderMod.install_script_extension(mod_dir + "extensions/singletons/run_data.gd")
 	ModLoaderMod.install_script_extension(mod_dir + "extensions/main.gd")
 	ModLoaderMod.install_script_extension(mod_dir + "extensions/ui/menus/shop/shop_item.gd")
-	ModLoaderMod.install_script_extension(mod_dir + "extensions/ui/menus/shop/base_shop.gd")
 	ModLoaderLog.info("Installed Wish extensions", MOD_ID)
 
 
 func _ready() -> void:
+	# Brotato 1.2.0.1's base shop infers a type from RunData.get_next_wave().
+	# RunData must be instanced before Godot can compile that script.
+	ModLoaderMod.install_script_extension(mod_dir + "extensions/ui/menus/shop/base_shop.gd")
 	ModLoaderLog.info("Wish ready", MOD_ID)
 
 

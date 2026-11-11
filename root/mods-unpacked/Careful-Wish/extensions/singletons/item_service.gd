@@ -73,17 +73,17 @@ func _ready() -> void:
 
 func _wish_unlock_content_after_profile_load() -> void:
 	if wish_djinn_data == null:
-		wish_djinn_data = _wish_find_by_id(characters, DJINN_ID)
+		wish_djinn_data = _wish_find_by_id(get_characters(), DJINN_ID)
 	if wish_shaman_data == null:
-		wish_shaman_data = _wish_find_by_id(characters, SHAMAN_ID)
+		wish_shaman_data = _wish_find_by_id(get_characters(), SHAMAN_ID)
 	if wish_for_company_data == null:
-		wish_for_company_data = _wish_find_by_id(items, COMPANY_WISH_ID)
-	wish_it_away_data = _wish_find_by_id(items, WISH_IT_AWAY_ID)
-	wish_you_were_here_data = _wish_find_by_id(items, WISH_YOU_WERE_HERE_ID)
-	wish_for_growth_data = _wish_find_by_id(items, WISH_FOR_GROWTH_ID)
-	wish_for_quality_data = _wish_find_by_id(items, WISH_FOR_QUALITY_ID)
-	wish_for_corruption_data = _wish_find_by_id(items, WISH_FOR_CORRUPTION_ID)
-	wish_for_knowledge_data = _wish_find_by_id(items, WISH_FOR_KNOWLEDGE_ID)
+		wish_for_company_data = _wish_find_by_id(get_items(), COMPANY_WISH_ID)
+	wish_it_away_data = _wish_find_by_id(get_items(), WISH_IT_AWAY_ID)
+	wish_you_were_here_data = _wish_find_by_id(get_items(), WISH_YOU_WERE_HERE_ID)
+	wish_for_growth_data = _wish_find_by_id(get_items(), WISH_FOR_GROWTH_ID)
+	wish_for_quality_data = _wish_find_by_id(get_items(), WISH_FOR_QUALITY_ID)
+	wish_for_corruption_data = _wish_find_by_id(get_items(), WISH_FOR_CORRUPTION_ID)
+	wish_for_knowledge_data = _wish_find_by_id(get_items(), WISH_FOR_KNOWLEDGE_ID)
 	var default_items = [
 		wish_for_company_data,
 		wish_it_away_data,
@@ -172,20 +172,22 @@ func _wish_sync_character_difficulty_unlocks(character_id: String) -> bool:
 
 func _wish_install_content() -> void:
 	_wish_register_growth_effect()
-	if _wish_find_by_id(characters, DJINN_ID) != null and _wish_find_by_id(characters, SHAMAN_ID) != null:
-		wish_djinn_data = _wish_find_by_id(characters, DJINN_ID)
-		wish_shaman_data = _wish_find_by_id(characters, SHAMAN_ID)
-		wish_lamp_data = _wish_find_by_id(items, LAMP_ID)
-		wish_paw_data = _wish_find_by_id(items, PAW_ID)
-		wish_for_company_data = _wish_find_by_id(items, COMPANY_WISH_ID)
-		wish_it_away_data = _wish_find_by_id(items, WISH_IT_AWAY_ID)
-		wish_you_were_here_data = _wish_find_by_id(items, WISH_YOU_WERE_HERE_ID)
-		wish_for_growth_data = _wish_find_by_id(items, WISH_FOR_GROWTH_ID)
-		wish_for_quality_data = _wish_find_by_id(items, WISH_FOR_QUALITY_ID)
-		wish_for_corruption_data = _wish_find_by_id(items, WISH_FOR_CORRUPTION_ID)
-		wish_for_knowledge_data = _wish_find_by_id(items, WISH_FOR_KNOWLEDGE_ID)
-		wish_resource_data = _wish_find_by_id(items, WISH_RESOURCE_ID)
-		wish_placeholder_data = _wish_find_by_id(items, PLACEHOLDER_ID)
+	# In Godot 3, bare inherited setget fields bypass their getter. The 1.2
+	# fields are unset proxies, so always read content through get_*().
+	if _wish_find_by_id(get_characters(), DJINN_ID) != null and _wish_find_by_id(get_characters(), SHAMAN_ID) != null:
+		wish_djinn_data = _wish_find_by_id(get_characters(), DJINN_ID)
+		wish_shaman_data = _wish_find_by_id(get_characters(), SHAMAN_ID)
+		wish_lamp_data = _wish_find_by_id(get_items(), LAMP_ID)
+		wish_paw_data = _wish_find_by_id(get_items(), PAW_ID)
+		wish_for_company_data = _wish_find_by_id(get_items(), COMPANY_WISH_ID)
+		wish_it_away_data = _wish_find_by_id(get_items(), WISH_IT_AWAY_ID)
+		wish_you_were_here_data = _wish_find_by_id(get_items(), WISH_YOU_WERE_HERE_ID)
+		wish_for_growth_data = _wish_find_by_id(get_items(), WISH_FOR_GROWTH_ID)
+		wish_for_quality_data = _wish_find_by_id(get_items(), WISH_FOR_QUALITY_ID)
+		wish_for_corruption_data = _wish_find_by_id(get_items(), WISH_FOR_CORRUPTION_ID)
+		wish_for_knowledge_data = _wish_find_by_id(get_items(), WISH_FOR_KNOWLEDGE_ID)
+		wish_resource_data = _wish_find_by_id(get_items(), WISH_RESOURCE_ID)
+		wish_placeholder_data = _wish_find_by_id(get_items(), PLACEHOLDER_ID)
 		return
 
 	wish_lamp_active_icon = _wish_load_png(MOD_DIR + "assets/wishmod_magic_lamp.png")
@@ -221,7 +223,7 @@ func _wish_install_content() -> void:
 	wish_lamp_data.item_appearances = []
 	wish_lamp_data.tags = []
 	wish_lamp_data._generate_hashes()
-	items.push_back(wish_lamp_data)
+	_wish_register_item(wish_lamp_data)
 
 	wish_paw_data = ItemData.new()
 	wish_paw_data.my_id = PAW_ID
@@ -238,7 +240,7 @@ func _wish_install_content() -> void:
 	wish_paw_data.item_appearances = []
 	wish_paw_data.tags = ["stat_curse", "stat_elemental_damage", "stat_lifesteal"]
 	wish_paw_data._generate_hashes()
-	items.push_back(wish_paw_data)
+	_wish_register_item(wish_paw_data)
 
 	wish_for_company_data = ItemData.new()
 	wish_for_company_data.my_id = COMPANY_WISH_ID
@@ -255,7 +257,7 @@ func _wish_install_content() -> void:
 	wish_for_company_data.item_appearances = []
 	wish_for_company_data.tags = []
 	wish_for_company_data._generate_hashes()
-	items.push_back(wish_for_company_data)
+	_wish_register_item(wish_for_company_data)
 
 	wish_it_away_data = _wish_create_item(
 		WISH_IT_AWAY_ID,
@@ -341,7 +343,7 @@ func _wish_install_content() -> void:
 	wish_resource_data.item_appearances = []
 	wish_resource_data.tags = []
 	wish_resource_data._generate_hashes()
-	items.push_back(wish_resource_data)
+	_wish_register_item(wish_resource_data)
 
 	wish_placeholder_data = ItemData.new()
 	wish_placeholder_data.my_id = PLACEHOLDER_ID
@@ -356,7 +358,7 @@ func _wish_install_content() -> void:
 	wish_placeholder_data.item_appearances = []
 	wish_placeholder_data.tags = []
 	wish_placeholder_data._generate_hashes()
-	items.push_back(wish_placeholder_data)
+	_wish_register_item(wish_placeholder_data)
 
 	wish_djinn_data = CharacterData.new()
 	wish_djinn_data.my_id = DJINN_ID
@@ -396,7 +398,7 @@ func _wish_install_content() -> void:
 	wish_djinn_data.starting_items = []
 	wish_djinn_data.starting_weapons = _wish_get_djinn_starting_weapons()
 	wish_djinn_data._generate_hashes()
-	characters.push_back(wish_djinn_data)
+	_wish_register_character(wish_djinn_data)
 
 	wish_shaman_data = CharacterData.new()
 	wish_shaman_data.my_id = SHAMAN_ID
@@ -440,7 +442,7 @@ func _wish_install_content() -> void:
 	wish_shaman_data.starting_items = []
 	wish_shaman_data.starting_weapons = _wish_get_starting_weapons(SHAMAN_STARTING_WEAPON_IDS)
 	wish_shaman_data._generate_hashes()
-	characters.push_back(wish_shaman_data)
+	_wish_register_character(wish_shaman_data)
 
 	wish_challenge_data = ChallengeData.new()
 	wish_challenge_data.my_id = CHALLENGE_ID
@@ -589,15 +591,15 @@ func wish_get_lamp_discount(item: ItemParentData) -> int:
 
 
 func wish_get_lamp_data():
-	return wish_lamp_data if wish_lamp_data != null else _wish_find_by_id(items, LAMP_ID)
+	return wish_lamp_data if wish_lamp_data != null else _wish_find_by_id(get_items(), LAMP_ID)
 
 
 func wish_get_resource_data():
-	return wish_resource_data if wish_resource_data != null else _wish_find_by_id(items, WISH_RESOURCE_ID)
+	return wish_resource_data if wish_resource_data != null else _wish_find_by_id(get_items(), WISH_RESOURCE_ID)
 
 
 func wish_get_paw_data():
-	return wish_paw_data if wish_paw_data != null else _wish_find_by_id(items, PAW_ID)
+	return wish_paw_data if wish_paw_data != null else _wish_find_by_id(get_items(), PAW_ID)
 
 
 func wish_update_paw_icon(charges: int) -> void:
@@ -614,7 +616,7 @@ func wish_get_paw_icon(charges: int):
 
 
 func wish_get_placeholder_data():
-	return wish_placeholder_data if wish_placeholder_data != null else _wish_find_by_id(items, PLACEHOLDER_ID)
+	return wish_placeholder_data if wish_placeholder_data != null else _wish_find_by_id(get_items(), PLACEHOLDER_ID)
 
 
 func wish_get_active_lamp_icon():
@@ -623,6 +625,21 @@ func wish_get_active_lamp_icon():
 
 func wish_get_used_lamp_icon():
 	return wish_lamp_used_icon
+
+
+# Brotato 1.2 rebuilds its public content lists and shop pools from item sets.
+# Register in the always-enabled base set so cache invalidation and Item Sets
+# changes preserve Wish content. Appending to get_items() alone is temporary.
+func _wish_register_item(item: ItemData) -> void:
+	if _wish_find_by_id(base_game_item_set.items, item.my_id) == null:
+		base_game_item_set.items.push_back(item)
+		invalidate_items_cache()
+
+
+func _wish_register_character(character: CharacterData) -> void:
+	if _wish_find_by_id(base_game_item_set.characters, character.my_id) == null:
+		base_game_item_set.characters.push_back(character)
+		invalidate_characters_cache()
 
 
 func _wish_create_item(item_id: String, name_key: String, icon, tier: int, value: int, effects: Array) -> ItemData:
@@ -641,7 +658,7 @@ func _wish_create_item(item_id: String, name_key: String, icon, tier: int, value
 	item.item_appearances = []
 	item.tags = []
 	item._generate_hashes()
-	items.push_back(item)
+	_wish_register_item(item)
 	return item
 
 
@@ -757,7 +774,7 @@ func _wish_get_djinn_starting_weapons() -> Array:
 func _wish_get_starting_weapons(weapon_ids: Array) -> Array:
 	var result = []
 	for weapon_id in weapon_ids:
-		var weapon = _wish_find_by_id(weapons, weapon_id)
+		var weapon = _wish_find_by_id(get_weapons(), weapon_id)
 		if weapon != null:
 			result.push_back(weapon)
 	return result

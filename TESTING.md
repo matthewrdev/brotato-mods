@@ -12,6 +12,43 @@ manifest, and installs it as `Wish-local.zip` in a dedicated local Workshop
 item folder that ModLoader scans. It also activates that archive in the current
 mod profile. Pass another folder as the first argument when needed.
 
+## Automated Brotato 1.2 compatibility test (macOS)
+
+```sh
+python3 scripts/test_compatibility.py
+```
+
+This builds the current archive, copies the installed PCK into a temporary
+folder, redirects ModLoader to test archives, and uses a new
+`Brotato-Wish-smoke-*` save directory. It copies profile progress for testing
+but starts a fresh run; it never writes to the live profile or installed game.
+The running game can stay open. Test files, saves, and logs are retained at the
+paths printed by the runner.
+
+Use `--extra-mod /absolute/path/mod.zip` for each additional mod to test.
+The runner also accepts `--executable`, `--pack`, and `--profile-source`.
+
+The checks cover content registration after cache rebuilds, native shop pools,
+both characters' starting gear, Wish and Crooked Wish reroll delivery, disk
+save/resume, Harvesting growth, Corruption, and enemy/Elite spawning with all
+five Calamities active. The manual checklist below still covers controller,
+co-op, visual layout, and full-run behaviour.
+
+On Brotato 1.2, leave the old ContentLoader and Horde Mode versions disabled;
+Wish does not require either of them.
+
+For Brotato 1.2.0.1, use Wish 0.1.3 or later. The shop extension must be
+installed in `_ready()`, after RunData is instanced; installing it in `_init()`
+causes a type-inference parse error in the game's `base_shop.gdc` at startup.
+The automated test loads the real shop scene and exercises Wish delivery to
+catch this regression.
+
+After a recovery launch with mods disabled, check the active mod list again.
+An empty profile can re-enable every discovered archive on the next normal
+launch. Move incompatible archives outside the scanned mod folders if needed;
+keep a backup so the change can be reversed. Steam may restore subscribed
+Workshop files when they update.
+
 ## Smoke test
 
 ### Djinn and Wish
